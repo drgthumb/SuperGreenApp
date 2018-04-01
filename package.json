@@ -1,0 +1,34 @@
+{
+  "name": "BoxConfigApp",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/react-native/local-cli/cli.js start",
+    "postinstall": "rndebugger-open",
+    "test": "jest"
+  },
+  "dependencies": {
+    "buffer": "^5.1.0",
+    "immutable": "^3.8.2",
+    "react": "^16.3.0-alpha.1",
+    "react-native": "0.54.0",
+    "react-native-ble-plx": "^0.8.0",
+    "react-navigation": "^1.5.8",
+    "react-navigation-redux-helpers": "^1.0.3",
+    "react-redux": "^5.0.7",
+    "redux": "^3.7.2",
+    "redux-immutable": "^4.0.0",
+    "redux-saga": "^0.16.0",
+    "reduxsauce": "^0.7.0"
+  },
+  "devDependencies": {
+    "babel-jest": "22.4.1",
+    "babel-preset-react-native": "4.0.0",
+    "jest": "22.4.2",
+    "react-native-debugger-open": "^0.3.17",
+    "react-test-renderer": "^16.3.0-alpha.1"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
