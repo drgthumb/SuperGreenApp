@@ -7,16 +7,7 @@ const initialState = fromJS(AppNavigator.router.getStateForAction(
 ))
 
 function nav(state = initialState, action) {
-  let nextState
-  switch (action.type) {
-    case NavigationActions.COMPLETE_TRANSITION:
-      nextState = state
-      break
-    default:
-      nextState = fromJS(AppNavigator.router.getStateForAction(action, state.toJS()))
-      break
-  }
-
+  const nextState = fromJS(AppNavigator.router.getStateForAction(action, state.toJS()))
   return nextState || state
 }
 

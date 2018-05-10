@@ -15,7 +15,6 @@ class DeviceList extends React.Component {
           keys.map(key => (
             <View key={key}>
               <Text>{devices.getIn([key, 'name'])}</Text>
-              <Button title="See" onPress={() => this._handleDeviceSelected(devices.get(key))} />
             </View>
           ))
         }

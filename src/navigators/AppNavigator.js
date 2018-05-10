@@ -1,19 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { StackNavigator, addNavigationHelpers } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation';
 
 import DeviceList from '../components/DeviceList';
-import SetupScreen from '../components/SetupScreen';
 import { addListener } from '../utils/redux';
 
-export const AppNavigator = StackNavigator({
+export const AppNavigator = createStackNavigator({
   List: { screen: DeviceList },
-  Device: { 
-    screen: StackNavigator({
-      Setup: { screen: SetupScreen },
-    })
-  },
 });
 
 class AppWithNavigationState extends React.Component {
@@ -26,11 +20,11 @@ class AppWithNavigationState extends React.Component {
     const { dispatch, nav } = this.props;
     return (
       <AppNavigator
-        navigation={addNavigationHelpers({
+        navigation={{
           dispatch,
           state: nav.toJS(),
           addListener,
-        })}
+        }}
       />
     );
   }
