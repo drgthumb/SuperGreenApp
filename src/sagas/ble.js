@@ -10,7 +10,7 @@ const devicesFoundEventChannel = () =>
     listenDevices(
       (device) => emitter(Creators.deviceDiscovered(fromJS(device))),
       (d, s, c, v) => emitter(Creators.characteristicChanged(d, s, c, v)),
-      (error) => emitter(Creators.error(fromJS(error))),
+      (deviceName, error) => emitter(Creators.error(deviceName, fromJS(error))),
     )
   )
 

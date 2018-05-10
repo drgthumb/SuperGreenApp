@@ -17,7 +17,7 @@ const composeEnhancers =
   window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
     // Specify extension’s options like name, actionsBlacklist, actionsCreators, serialize...
   }) : compose;
-const store = createStore(AppReducer, composeEnhancers(applyMiddleware(sagaMiddleware)))
+const store = createStore(AppReducer, composeEnhancers(applyMiddleware(sagaMiddleware, middleware)))
 
 sagaMiddleware.run(rootSaga)
 

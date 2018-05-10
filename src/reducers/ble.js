@@ -23,7 +23,11 @@ function ble(state = initialState, action) {
     case Types.SCAN:
       nextState = state.setIn(['devices', action.deviceName, 'services', 'wifi', 'characteristics', 'foundWifi', 'value'], fromJS([]))
     case Types.ERROR:
-      nextState = state.set('error', action.error)
+      if (action.deviceName) {
+        nextState = state.setIn(['devices', action.deviceName, 'error'], action.error)
+      } else {
+        nextState = state.set('error', action.error)
+      }
       break
     default:
       break

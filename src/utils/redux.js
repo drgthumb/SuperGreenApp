@@ -5,7 +5,7 @@ import {
 
 const middleware = createReactNavigationReduxMiddleware(
   "root",
-  state => state.nav,
+  state => state.get('nav').toJS(),
 );
 const addListener = createReduxBoundAddListener("root");
 

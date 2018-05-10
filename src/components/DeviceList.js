@@ -1,7 +1,7 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React from 'react'
+import PropTypes from 'prop-types'
 import { View, Text, Button } from 'react-native'
-import { connect } from 'react-redux';
+import { connect } from 'react-redux'
 import { Creators } from '../actions/ble'
 
 class DeviceList extends React.Component {
@@ -9,7 +9,6 @@ class DeviceList extends React.Component {
   render() {
     const { dispatch, devices } = this.props
     const keys = devices.keySeq().toArray().sort()
-    console.log(keys)
     return (
       <View>
         {
@@ -21,18 +20,18 @@ class DeviceList extends React.Component {
           ))
         }
       </View>
-    );
+    )
   }
 
   _handleDeviceSelected = (device) => {
-    const { dispatch } = this.props;
-    dispatch(Creators.scan(device.get('name')))
+    const { navigation } = this.props
+    navigation.navigate('Device', { device })
   }
 
 }
 
 const mapStateToProps = state => ({
   devices: state.getIn(['ble', 'devices']),
-});
+})
 
-export default connect(mapStateToProps)(DeviceList);
+export default connect(mapStateToProps)(DeviceList)

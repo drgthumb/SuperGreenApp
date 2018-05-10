@@ -4,7 +4,7 @@ const { Types, Creators } = createActions({
   deviceDiscovered: ['device'],
   characteristicChanged: ['deviceName', 'serviceName', 'characteristicName', 'value'],
   scan: ['deviceName'],
-  error: ['error'],
+  error: ['deviceName', 'error'],
 })
 
 export {
