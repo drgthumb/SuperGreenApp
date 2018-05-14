@@ -9,39 +9,96 @@ const intValue = (v) => Buffer.from(v, 'base64').readUIntLE(0, 4);
 const stringValue = (v) => Buffer.from(v, 'base64').toString();
 
 const SERVICE_MAPPING = {
-  '4fafc201-1fb5-459e-8fcc-c5c9c331914b': {
-    name: 'wifi',
+  '000000ff-0000-1000-8000-00805f9b34fb': {
+    name: 'config',
     characteristics: {
-      'ff05b1e7-669b-4678-8882-467f029f5165': {
-        name: 'status',
-        type: stringValue,
-      },
-      '718226eb-2bc4-4244-b191-02c34d31cde3': {
-        name: 'scanWifi',
-        type: intValue,
-      },
-      'd764b280-a943-474a-ad58-2ca6d28488ea': {
-        name: 'foundWifi',
-        initialValue: [],
-        type: stringValue,
-      },
-      '8ca48df9-f388-4a41-9ae1-36bf4e2a8517': {
-        name: 'ssid',
-        type: stringValue,
-      },
-      '2af8b831-3927-49e6-b1bc-8e8aab7434e3': {
-        name: 'password',
-        type: stringValue,
-      }
-    }
-  },
-  '126528f3-7b17-4fd1-ac63-210c9078958e': {
-    name: 'time',
-    characteristics: {
+      /* TIME */
       '40f9ee4f-e19e-4a8a-aa33-b4aae23b6a9b': {
         name: 'time',
         type: intValue,
       },
+
+      /* LED */
+     '4750daf8-0f06-ad2b-178e-ec58c7f30421': {
+        name: 'led_0_0_pwr',
+        type: intValue,
+      },
+     '3c14371f-b1b6-6d66-cc02-b01396f6f84f': {
+        name: 'led_0_1_pwr',
+        type: intValue,
+      },
+     'ca2a9037-7626-6751-60fb-c3922021cc42': {
+        name: 'led_0_2_pwr',
+        type: intValue,
+      },
+     '0365b1c9-4079-4caf-51f4-2730ca055bb5': {
+        name: 'led_1_0_pwr',
+        type: intValue,
+      },
+     'ab2abc56-1a48-84d1-1b20-6c0035d7c9eb': {
+        name: 'led_1_1_pwr',
+        type: intValue,
+      },
+     '05a5cc9e-a67b-bc62-2577-6ceb69cbc567': {
+        name: 'led_1_2_pwr',
+        type: intValue,
+      },
+
+     '4291ec1b-65df-19c4-c5f1-e4259071fc5d': {
+        name: 'led_0_0_duty',
+        type: intValue,
+      },
+     '18a17b54-716d-3eb8-af12-b447d7c81cd8': {
+        name: 'led_0_1_duty',
+        type: intValue,
+      },
+     '2914d978-e7d9-6f5a-36e8-1a11011ab737': {
+        name: 'led_0_2_duty',
+        type: intValue,
+      },
+     '4cba86fc-e385-3cd2-2de5-5c7ef8a6ed40': {
+        name: 'led_1_0_duty',
+        type: intValue,
+      },
+     '5b11c5f4-67b6-c712-fc1c-4b13fa9fd3cb': {
+        name: 'led_1_1_duty',
+        type: intValue,
+      },
+     'bd87b60e-30b7-d99c-56e2-cd377da4494e': {
+        name: 'led_1_2_duty',
+        type: intValue,
+      },
+
+      /* TIMER TYPE */
+      '5f5ea840-3aa9-0a7b-343d-415ab2faa9f3': {
+        name: 'timerType',
+        type: intValue,
+      },
+      'b2286094-8299-a967-db89-ee856e365789': {
+        name: 'timerOutput',
+        type: intValue,
+      },
+
+      /* ONOFF */
+      'e867f9a6-4ab7-09da-ef26-19f350ed4ba1': {
+        name: 'onHour',
+        type: intValue,
+      },
+      '7528a50b-dd3b-f714-62f5-7167f1791347': {
+        name: 'onMin',
+        type: intValue,
+      },
+      '5dafb88c-9d7e-ab6b-0253-12294c35beae': {
+        name: 'offHour',
+        type: intValue,
+      },
+      '086aa1e1-d9ab-2d22-4110-4f3f05efd3d4': {
+        name: 'offMin',
+        type: intValue,
+      },
+
+
+      /* SEASON */
       '3867a37c-85a9-338c-40ac-96d4ee586841': {
         name: 'simulatedTime',
         type: intValue,
@@ -65,7 +122,21 @@ const SERVICE_MAPPING = {
       '1f450234-f101-4f57-ba39-304b053b95a2': {
         name: 'startedAt',
         type: intValue,
-      }
+      },
+
+      /* WIFI */
+      '372fda1c-6d67-cbda-f083-ae31b50e06ee': {
+        name: 'wifi_status',
+        type: intValue,
+      },
+      '6ca36981-9c55-74a5-5415-e16bc1c3fe17': {
+        name: 'wifi_ssid',
+        type: stringValue,
+      },
+      'f7e40b10-6cfe-a6f1-fea0-cc6e82535db9': {
+        name: 'wifi_password',
+        type: stringValue,
+      },
     },
   },
 }
