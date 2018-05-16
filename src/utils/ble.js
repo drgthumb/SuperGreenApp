@@ -5,8 +5,14 @@ const NAME_MATCH = /^🤖🍁/
 
 let bleManager// = new BleManager()
 
-const intValue = (v) => Buffer.from(v, 'base64').readUIntLE(0, 4);
-const stringValue = (v) => Buffer.from(v, 'base64').toString();
+const intValue = (v) => {
+  try {
+    return Buffer.from(v, 'base64').readUIntLE(0, 4)
+  } catch (e) {
+    return 0
+  }
+}
+const stringValue = (v) => Buffer.from(v, 'base64').toString()
 
 const SERVICE_MAPPING = {
   '000000ff-0000-1000-8000-00805f9b34fb': {
@@ -194,20 +200,22 @@ const monitorCharacteristics = async (device, onChange, onError) => {
           onError(device.name, error)
           return
         }
-        console.log(device.name)
-        onChange(device.name, serviceNameForUUID(service.uuid), characteristicNameForUUID(service.uuid, characteristic.uuid), characteristicTypeForUUID(service.uuid, characteristic.uuid)(characteristic.value))
+        onChange(device.id, serviceNameForUUID(service.uuid), characteristicNameForUUID(service.uuid, characteristic.uuid), characteristicTypeForUUID(service.uuid, characteristic.uuid)(characteristic.value))
       });
     }
   }
 }
 
-const setCharacteristicValue = async (deviceName, serviceName, characteristicName, value) => {
-  console.log(DEVICE_MAPPING, ' ', deviceName, ' ', Object.keys(DEVICE_MAPPING));
-  const deviceUUID = UUIDForDeviceName(deviceName),
-        serviceUUID = UUIDForServiceName(serviceName),
+const setCharacteristicValue = async (deviceId, serviceName, characteristicName, value) => {
+  const serviceUUID = UUIDForServiceName(serviceName),
         characteristicUUID = UUIDForCharacteristicName(serviceUUID, characteristicName)
-  console.log(deviceUUID, ' ', serviceUUID, ' ', characteristicUUID)
-  await bleManager.writeCharacteristicWithResponseForDevice(deviceUUID, serviceUUID, characteristicUUID, new Buffer(value).toString('base64'))
+  if (typeof value == 'number') {
+    const b = new Buffer(4);
+    b.writeIntLE(value, 0, 4);
+    await bleManager.writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, b.toString('base64'))
+  } else {
+    await bleManager.writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, new Buffer(value).toString('base64'))
+  }
 }
 
 const init = async () => {
@@ -230,7 +238,6 @@ const listenDevices = (onDeviceFound, onValueChange, onError) => {
       return
     }
 
-    console.log(device.name)
     if (device.name && device.name.match(NAME_MATCH)) {
       device = await device.connect()
       await device.discoverAllServicesAndCharacteristics()

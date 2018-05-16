@@ -1,10 +1,10 @@
 import { createActions } from 'reduxsauce'
 
 const { Types, Creators } = createActions({
+  setCharacteristicValue: ['deviceId', 'serviceName', 'characteristicName', 'value'],
   deviceDiscovered: ['device'],
-  characteristicChanged: ['deviceName', 'serviceName', 'characteristicName', 'value'],
-  scan: ['deviceName'],
-  error: ['deviceName', 'error'],
+  characteristicChanged: ['deviceId', 'serviceName', 'characteristicName', 'value'],
+  error: ['deviceId', 'error'],
 })
 
 export {

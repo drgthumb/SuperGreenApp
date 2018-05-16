@@ -18,7 +18,6 @@ class DeviceList extends React.Component {
               <View style={styles.device}>
                 <View style={styles.horizontal}>
                   <Text style={styles.name}>{devices.getIn([key, 'name'])}</Text>
-                  <Text style={styles.time}>{this._timeAsHour(key)}</Text>
                 </View>
                 <Text style={styles.uuid}>{devices.getIn([key, 'id'])}</Text>
               </View>
@@ -27,11 +26,6 @@ class DeviceList extends React.Component {
         }
       </View>
     )
-  }
-
-  _timeAsHour(key) {
-    const { devices } = this.props;
-    return moment(devices.getIn([key, 'services', 'config', 'characteristics', 'time', 'value']) * 1000).format('MM-DD hh:mm:ss');
   }
 
   _handleDeviceSelected = (device) => {

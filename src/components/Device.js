@@ -5,16 +5,20 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import PropTypes from 'prop-types'
 import { Creators } from '../actions/ble'
 
+import Status from './Status'
+import Timer from './Timer'
+import Settings from './Settings'
+
+const NAV_COMPONENTS = {'status': Status, 'timer': Timer, 'settings': Settings};
+
 class Device extends React.Component {
 
   state = {nav: 'status'}
 
-  componentDidMount() {
-    const { dispatch, device } = this.props
-  }
-
   render() {
-    const { device, wifis } = this.props
+    const { device } = this.props
+    const { nav } = this.state;
+    const NavComponent = NAV_COMPONENTS[nav];
     return (
       <View style={layoutStyles.container}>
         <View style={layoutStyles.mainStatus}>
@@ -27,9 +31,9 @@ class Device extends React.Component {
               <Text>status</Text>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity style={navStyles.navItemWrapper} onPress={() => this._handleNavPress('light')}>
-            <View style={[navStyles.navItem, this.state.nav == 'light' && navStyles.navItemSelected]}>
-              <Text>light</Text>
+          <TouchableOpacity style={navStyles.navItemWrapper} onPress={() => this._handleNavPress('timer')}>
+            <View style={[navStyles.navItem, this.state.nav == 'timer' && navStyles.navItemSelected]}>
+              <Text>timer</Text>
             </View>
           </TouchableOpacity>
           <TouchableOpacity style={navStyles.navItemWrapper} onPress={() => this._handleNavPress('settings')}>
@@ -39,7 +43,7 @@ class Device extends React.Component {
           </TouchableOpacity>
         </View>
         <View style={layoutStyles.content}>
-          <Text>{this.state.nav}</Text>
+          <NavComponent device={device} />
         </View>
       </View>
     );
@@ -102,8 +106,7 @@ const navStyles = StyleSheet.create({
 });
 
 const mapStateToProps = (state, props) => ({
-  device: state.getIn(['ble', 'devices', props.navigation.getParam('device').name]),
-  wifis: state.getIn(['ble', 'devices', props.navigation.getParam('device').name, 'services', 'wifi', 'characteristics', 'foundWifi', 'value']),
+  device: state.getIn(['ble', 'devices', props.navigation.getParam('device').id]),
 })
 
 export default connect(mapStateToProps)(Device)

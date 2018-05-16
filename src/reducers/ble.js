@@ -11,20 +11,15 @@ function ble(state = initialState, action) {
   let nextState
   switch (action.type) {
     case Types.DEVICE_DISCOVERED:
-      nextState = state.setIn(['devices', action.device.get('name')], action.device)
+      nextState = state.setIn(['devices', action.device.get('id')], action.device)
       break
     case Types.CHARACTERISTIC_CHANGED:
-      if (action.characteristicName == 'foundWifi') {
-        nextState = state.updateIn(['devices', action.deviceName, 'services', action.serviceName, 'characteristics', action.characteristicName, 'value'], (arr) => (arr || []).push(action.value))
-      } else {
-        nextState = state.setIn(['devices', action.deviceName, 'services', action.serviceName, 'characteristics', action.characteristicName, 'value'], action.value)
-      }
+    case Types.SET_CHARACTERISTIC_VALUE:
+      nextState = state.setIn(['devices', action.deviceId, 'services', action.serviceName, 'characteristics', action.characteristicName, 'value'], action.value)
       break
-    case Types.SCAN:
-      nextState = state.setIn(['devices', action.deviceName, 'services', 'wifi', 'characteristics', 'foundWifi', 'value'], fromJS([]))
     case Types.ERROR:
-      if (action.deviceName) {
-        nextState = state.setIn(['devices', action.deviceName, 'error'], action.error)
+      if (action.deviceId) {
+        nextState = state.setIn(['devices', action.deviceId, 'error'], action.error)
       } else {
         nextState = state.set('error', action.error)
       }

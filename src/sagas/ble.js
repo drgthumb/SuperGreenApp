@@ -10,16 +10,16 @@ const devicesFoundEventChannel = () =>
     listenDevices(
       (device) => emitter(Creators.deviceDiscovered(fromJS(device))),
       (d, s, c, v) => emitter(Creators.characteristicChanged(d, s, c, v)),
-      (deviceName, error) => emitter(Creators.error(deviceName, fromJS(error))),
+      (deviceId, error) => emitter(Creators.error(deviceId, fromJS(error))),
     )
   )
 
-const scan = function*(action) {
-  yield call(setCharacteristicValue, action.deviceName, 'wifi', 'scanWifi', 'ON')
+const setCharacteristicValueSaga = function*(action) {
+  yield call(setCharacteristicValue, action.deviceId, action.serviceName, action.characteristicName, action.value)
 }
 
 const bleSaga = function*() {
-  yield takeEvery(Types.SCAN, scan);
+  yield takeEvery(Types.SET_CHARACTERISTIC_VALUE, setCharacteristicValueSaga);
   yield call(init)
   const chan = yield call(devicesFoundEventChannel)
 
