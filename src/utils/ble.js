@@ -12,6 +12,7 @@ const intValue = (v) => {
     return 0
   }
 }
+
 const stringValue = (v) => Buffer.from(v, 'base64').toString()
 
 const SERVICE_MAPPING = {
@@ -21,6 +22,12 @@ const SERVICE_MAPPING = {
       /* TIME */
       '40f9ee4f-e19e-4a8a-aa33-b4aae23b6a9b': {
         name: 'time',
+        type: intValue,
+      },
+
+      /* STATE */
+      '8ff6dfd2-3bd6-feb4-43ec-de5663122894': {
+        name: 'state',
         type: intValue,
       },
 
@@ -150,7 +157,6 @@ const SERVICE_MAPPING = {
 const DEVICE_MAPPING = {}
 
 // TODO fix this mess
-const UUIDForDeviceName = (name) => Object.keys(DEVICE_MAPPING).find((v) => DEVICE_MAPPING[v].name == name)
 const UUIDForServiceName = (name) => Object.keys(SERVICE_MAPPING).find((v) => SERVICE_MAPPING[v].name == name)
 const UUIDForCharacteristicName = (serviceUUID, name) => Object.keys(SERVICE_MAPPING[serviceUUID].characteristics).find((v) => SERVICE_MAPPING[serviceUUID].characteristics[v].name == name)
 
@@ -245,6 +251,7 @@ const listenDevices = (onDeviceFound, onValueChange, onError) => {
       const deviceObj = await deviceToObject(device)
       DEVICE_MAPPING[device.id] = deviceObj
       monitorCharacteristics(device, onValueChange, onError)
+      setCharacteristicValue(device.id, 'config', 'time', Date.now())
       onDeviceFound(deviceObj)
     }
   })

@@ -5,11 +5,13 @@ import { createStackNavigator } from 'react-navigation';
 
 import DeviceList from '../components/DeviceList';
 import Device from '../components/Device';
+import Wait from '../components/Wait';
 import { addListener } from '../utils/redux';
 
 export const AppNavigator = createStackNavigator({
-  List: { screen: DeviceList, },
+  Wait: { screen: Wait, },
   Device: { screen: Device, },
+  List: { screen: DeviceList, },
 });
 
 class AppWithNavigationState extends React.Component {

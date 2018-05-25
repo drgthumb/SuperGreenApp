@@ -3,7 +3,7 @@ import { NavigationActions } from 'react-navigation'
 import { AppNavigator } from '../navigators/AppNavigator'
 
 const initialState = fromJS(AppNavigator.router.getStateForAction(
-  AppNavigator.router.getActionForPathAndParams('List')
+  AppNavigator.router.getActionForPathAndParams('Wait')
 ))
 
 function nav(state = initialState, action) {

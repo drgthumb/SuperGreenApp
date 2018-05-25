@@ -9,13 +9,15 @@ class Settings extends React.Component {
 
   render() {
     const { device } = this.props
+    const characteristics = device.getIn(['services', 'config', 'characteristics'])
+    const keys = characteristics.keySeq().toArray().sort()
     return (
       <View style={layoutStyles.container}>
         <Text>Settings</Text>
         <ScrollView style={layoutStyles.container}>
         {
-          device.getIn(['services', 'config', 'characteristics']).map((v, k) => (
-            <Text key={k}>{k} : {v.get('value')}</Text>
+          keys.map((k) => (
+            <Text key={k}>{k} : {characteristics.getIn([k, 'value'])}</Text>
           ))
         }
         </ScrollView>
