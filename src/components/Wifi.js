@@ -1,27 +1,151 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
+import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
 import PropTypes from 'prop-types'
 import { Creators } from '../actions/ble'
 
 import SetupLayout from './SetupLayout'
 
-class Wifi extends React.Component {
+class Input extends React.Component {
 
   render() {
-    const { devices } = this.props
+    return (
+      <View style={inputStyles.container}>
+        <TextInput {...this.props} style={inputStyles.text} />
+      </View>
+    )
+  }
+
+}
+
+const inputStyles = StyleSheet.create({
+  container: {
+    borderWidth: 1,
+    borderColor: 'grey',
+    borderRadius: 5,
+    backgroundColor: 'white',
+    height: 40,
+    padding: 5,
+    margin: 5,
+    justifyContent: 'center',
+  },
+  text: {
+    flex: 1,
+  },
+})
+
+class BigButton extends React.Component {
+
+  render() {
+    const { title, onPress, disabled } = this.props
+    return (
+      <TouchableOpacity disabled={disabled} onPress={onPress} style={[buttonStyles.container, disabled && buttonStyles.disabled]}>
+        <Text style={buttonStyles.label}>{title || 'Ok'}</Text>
+      </TouchableOpacity>
+    )
+  }
+
+}
+
+const buttonStyles = StyleSheet.create({
+  container: {
+    backgroundColor: '#B3DFBF',
+    borderRadius: 5,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 5,
+  },
+  disabled: {
+    backgroundColor: 'grey',
+  },
+  label: {
+    color: '#626262',
+  },
+})
+
+const STATES = ['Disconnected', 'Connecting', 'Connected']
+
+class Wifi extends React.Component {
+
+  state = {ssid: '', password: '', submitted: false}
+
+  componentWillReceiveProps(newProps) {
+    const { device, navigation } = newProps
+    const { device: odevice } = this.props
+    const state = device.getIn(['services', 'config', 'characteristics', 'wifi_status', 'value'])
+    const ostate = odevice.getIn(['services', 'config', 'characteristics', 'wifi_status', 'value'])
+    const dssid = device.getIn(['services', 'config', 'characteristics', 'wifi_ssid', 'value'])
+    const odssid = odevice.getIn(['services', 'config', 'characteristics', 'wifi_ssid', 'value'])
+
+    if (dssid !== odssid) {
+      this.setState({ ssid: dssid })
+    }
+
+    if (state !== ostate) {
+      if (state == 3) {
+        console.log('CONNECTED');
+        navigation.navigate('Lightening', { device: device.toJS() })
+      }
+    }
+  }
+
+  render() {
+    const { submitted } = this.state
     return (
       <SetupLayout title='Wifi setup'>
-        <View style={layoutStyles.container}>
-          <Text style={styles.title}>
-            Looking for the new box,
-            please ensure that it is plugged in..
-          </Text>
-          <TextInput placeholder='SSID' />
-          <ActivityIndicator size="large" />
-        </View>
+        { submitted ? this.renderLoading() : this.renderForm() }
       </SetupLayout>
     )
+  }
+
+  renderForm() {
+    const { ssid, password } = this.state
+    return (
+      <View style={layoutStyles.container}>
+        <Input placeholder='SSID' onChangeText={(value) => this.setState({ssid: value})} value={ssid} />
+        <Input placeholder='Password' secureTextEntry={true} onChangeText={(value) => this.setState({password: value})} value={password} />
+        <BigButton disabled={!ssid || !password} onPress={this._handleSetWifi} />
+      </View>
+    )
+  }
+
+  renderLoading() {
+    const { device } = this.props
+    const state = device.getIn(['services', 'config', 'characteristics', 'wifi_status', 'value'])
+
+    if (state == 4) {
+      return (
+        <View style={layoutStyles.container}>
+          <Text style={styles.title}>
+            Connection failed
+          </Text>
+          <BigButton title='Retry' onPress={this._handleRetry} />
+        </View>
+      )
+    }
+    return (
+      <View style={layoutStyles.container}>
+        <Text style={styles.title}>
+          Connecting Wifi,{"\n"}
+          please wait..
+        </Text>
+        <ActivityIndicator size="large" />
+      </View>
+    )
+  }
+
+  _handleRetry = () => {
+    this.setState({submitted: false})
+  }
+
+  _handleSetWifi = () => {
+    const { dispatch, device } = this.props
+    const { ssid, password } = this.state
+
+    this.setState({submitted: true})
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'wifi_ssid', ssid))
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'wifi_password', password))
   }
 
 }
@@ -33,20 +157,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#A7A7A7',
     textAlign: 'center',
-    margin: 40,
+    marginTop: 30,
+    marginBottom: 40,
   },
-});
+})
 
 const layoutStyles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'column',
-    alignItems: 'center',
+    alignItems: 'stretch',
+    margin: 25,
   },
 })
 
 const mapStateToProps = (state, props) => ({
-  devices: state.getIn(['ble', 'devices']),
+  device: state.getIn(['ble', 'devices', props.navigation.getParam('device').id]),
 })
 
 export default connect(mapStateToProps)(Wifi)

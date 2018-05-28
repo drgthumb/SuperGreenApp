@@ -46,8 +46,9 @@ const layoutStyles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'column',
-    alignItems: 'center',
+    alignItems: 'stretch',
     justifyContent: 'center',
+    backgroundColor: 'white',
   },
   top: {
     margin: 10,
@@ -55,7 +56,7 @@ const layoutStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   body: {
-    flex: 1,
+    flex: 0.8,
   },
 })
 

@@ -12,8 +12,12 @@ class Wait extends React.Component {
     const { devices, navigation, } = newProps;
     const { devices: newDevices, } = this.props;
     if (devices.size != 0 && devices.size != newDevices.size) {
-      console.log(devices, ' ', devices.valueSeq());
-      navigation.navigate('Device', { device: devices.valueSeq().get(0) })
+      const device = devices.valueSeq().get(0)
+      if (device.getIn(['services', 'config', 'characteristics', 'state', 'value']) == 0) {
+        navigation.navigate('Wifi', { device: device.toJS() })
+      } else {
+        navigation.navigate('Device', { device: device.toJS() })
+      }
     }
   }
 

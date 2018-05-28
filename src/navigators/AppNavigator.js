@@ -1,17 +1,25 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { createStackNavigator } from 'react-navigation';
+import { createStackNavigator, createSwitchNavigator } from 'react-navigation';
 
 import DeviceList from '../components/DeviceList';
 import Device from '../components/Device';
 import Wait from '../components/Wait';
+import Wifi from '../components/Wifi';
 import { addListener } from '../utils/redux';
 
-export const AppNavigator = createStackNavigator({
-  Wait: { screen: Wait, },
-  Device: { screen: Device, },
-  List: { screen: DeviceList, },
+export const AppNavigator = createSwitchNavigator({
+  Wait,
+  InitialSetup: createStackNavigator({
+    Wifi,
+  }, {
+    headerMode: 'none',
+    initialRouteName: 'Wifi',
+  }),
+  Home: createStackNavigator({
+    Device,
+  }),
 });
 
 class AppWithNavigationState extends React.Component {
