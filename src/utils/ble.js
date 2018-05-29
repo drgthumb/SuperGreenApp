@@ -247,11 +247,10 @@ const listenDevices = (onDeviceFound, onValueChange, onError) => {
     if (device.name && device.name.match(NAME_MATCH)) {
       device = await device.connect()
       await device.discoverAllServicesAndCharacteristics()
-      await device.requestMTU(256)
       const deviceObj = await deviceToObject(device)
       DEVICE_MAPPING[device.id] = deviceObj
       monitorCharacteristics(device, onValueChange, onError)
-      setCharacteristicValue(device.id, 'config', 'time', Date.now())
+      await setCharacteristicValue(device.id, 'config', 'time', Date.now() / 1000)
       onDeviceFound(deviceObj)
     }
   })

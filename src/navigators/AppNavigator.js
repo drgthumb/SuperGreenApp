@@ -7,12 +7,22 @@ import DeviceList from '../components/DeviceList';
 import Device from '../components/Device';
 import Wait from '../components/Wait';
 import Wifi from '../components/Wifi';
+import SelfTest from '../components/SelfTest';
+import Lighting from '../components/Lighting';
+import TimerType from '../components/TimerType';
+import Classic from '../components/Classic';
+import Season from '../components/Season';
 import { addListener } from '../utils/redux';
 
 export const AppNavigator = createSwitchNavigator({
   Wait,
   InitialSetup: createStackNavigator({
     Wifi,
+    SelfTest,
+    Lighting,
+    TimerType,
+    Classic,
+    Season,
   }, {
     headerMode: 'none',
     initialRouteName: 'Wifi',

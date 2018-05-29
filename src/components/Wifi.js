@@ -3,6 +3,7 @@ import { connect } from 'react-redux'
 import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
 import PropTypes from 'prop-types'
 import { Creators } from '../actions/ble'
+import { nextSetupRootForDevice } from '../navigators/AppNavigator'
 
 import SetupLayout from './SetupLayout'
 
@@ -85,8 +86,16 @@ class Wifi extends React.Component {
     if (state !== ostate) {
       if (state == 3) {
         console.log('CONNECTED');
-        navigation.navigate('Lightening', { device: device.toJS() })
+        navigation.navigate('SelfTest', { device: device.toJS() })
       }
+    }
+  }
+
+  componentDidMount() {
+    const { device, navigation } = this.props
+    const state = device.getIn(['services', 'config', 'characteristics', 'wifi_status', 'value'])
+    if (state == 3) {
+      navigation.navigate('SelfTest', { device: device.toJS() })
     }
   }
 
