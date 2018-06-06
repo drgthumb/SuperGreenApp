@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
 import { Creators } from '../actions/ble'
 
 import textStyles from './TextStyles'
+import Separator from './Separator'
 import BigButton from './BigButton'
 import SetupLayout from './SetupLayout'
 
@@ -14,6 +15,9 @@ import switchOn from './assets/images/switch-on.png'
 import switchOff from './assets/images/switch-off.png'
 import cloudy from './assets/images/cloudy.png'
 import sun from './assets/images/sun.png'
+import minimumTrack from './assets/images/minimum-track.png'
+import maximumTrack from './assets/images/maximum-track.png'
+import slider from './assets/images/slider.png'
 
 const LED_PLACES = ['Bottom, side A', 'Middle, side A', 'Top, side A', 'Bottom, side B', 'Middle, side B', 'Top, side B'];
 const LED_MIN_DUTY = 550
@@ -48,6 +52,7 @@ class SelfTest extends React.Component {
               <Image source={next} />
             </TouchableOpacity>
           </View>
+          <Separator />
           <View style={layoutStyles.switches}>
             <View style={layoutStyles.radio}>
               <Text style={textStyles.text}>Power switch:{' '}</Text>
@@ -62,6 +67,9 @@ class SelfTest extends React.Component {
                 <Slider value={duty}
                   minimumValue={LED_MIN_DUTY}
                   maximumValue={LED_MAX_DUTY}
+                  minimumTrackImage={minimumTrack}
+                  maximumTrackImage={maximumTrack}
+                  thumbImage={slider}
                   onSlidingComplete={this._handleBrightnessChanged}
                   style={layoutStyles.sliderTrack} />
                 <Image style={layoutStyles.sliderPic} source={sun} />
@@ -137,6 +145,7 @@ const layoutStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-evenly',
     margin: 25,
+    marginTop: 0,
   },
   radio: {
     flexDirection: 'row',
@@ -148,6 +157,7 @@ const layoutStyles = StyleSheet.create({
   },
   slider: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 10,
     marginRight: 10,

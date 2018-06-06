@@ -6,6 +6,7 @@ import PropTypes from 'prop-types'
 import { Creators } from '../actions/ble'
 
 import textStyles from './TextStyles'
+import Separator from './Separator'
 import BigButton from './BigButton'
 import SetupLayout, { setupStyles } from './SetupLayout'
 
@@ -105,6 +106,7 @@ class Classic extends React.Component {
       <View style={layoutStyles.container}>
         <Text style={setupStyles.title}>2. Classic sunrise/sunset timer</Text>
         {this.renderParam('on')}
+        <Separator />
         {this.renderParam('off')}
       </View>
     )
@@ -125,12 +127,10 @@ class Classic extends React.Component {
   }
 
   _handleEditParam = (param) => () => {
-    console.log('_handleEditParam', param);
     this.setState({editParam: param})
   }
 
   _handleParamChanged = (param) => (value) => {
-    console.log('_handleParamChanged', param);
     const { device, dispatch } = this.props
     const params = value.split('h')
     console.log(params, parseInt(params[0]), parseInt(params[1]))
