@@ -215,7 +215,6 @@ const monitorCharacteristics = async (device, onChange, onError) => {
 const setCharacteristicValue = async (deviceId, serviceName, characteristicName, value) => {
   const serviceUUID = UUIDForServiceName(serviceName),
         characteristicUUID = UUIDForCharacteristicName(serviceUUID, characteristicName)
-  console.log(deviceId, serviceName, characteristicName, value)
   if (typeof value == 'number') {
     const b = new Buffer(4);
     b.writeIntLE(value, 0, 4);
