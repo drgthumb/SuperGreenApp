@@ -6,15 +6,15 @@ import { Creators } from '../actions/ble'
 
 import SetupLayout from './SetupLayout'
 
-class SelfTest extends React.Component {
+class Classic extends React.Component {
 
   state = {selectedTimer: -1}
 
   render() {
     const { submitted } = this.state
     return (
-      <SetupLayout title='SelfTest setup'>
-        <Text>SelfTest</Text>
+      <SetupLayout title='Classic setup'>
+        <Text>Classic</Text>
         <View style={layoutStyles.container}>
         </View>
       </SetupLayout>
@@ -47,4 +47,4 @@ const mapStateToProps = (state, props) => ({
   device: state.getIn(['ble', 'devices', props.navigation.getParam('device').id]),
 })
 
-export default connect(mapStateToProps)(SelfTest)
+export default connect(mapStateToProps)(Classic)

@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
 import { Creators } from '../actions/ble'
 import { nextSetupRootForDevice } from '../navigators/AppNavigator'
 
+import BigButton from './BigButton'
 import SetupLayout from './SetupLayout'
 
 class Input extends React.Component {
@@ -32,36 +33,6 @@ const inputStyles = StyleSheet.create({
   },
   text: {
     flex: 1,
-  },
-})
-
-class BigButton extends React.Component {
-
-  render() {
-    const { title, onPress, disabled } = this.props
-    return (
-      <TouchableOpacity disabled={disabled} onPress={onPress} style={[buttonStyles.container, disabled && buttonStyles.disabled]}>
-        <Text style={buttonStyles.label}>{title || 'Ok'}</Text>
-      </TouchableOpacity>
-    )
-  }
-
-}
-
-const buttonStyles = StyleSheet.create({
-  container: {
-    backgroundColor: '#B3DFBF',
-    borderRadius: 5,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: 5,
-  },
-  disabled: {
-    backgroundColor: 'grey',
-  },
-  label: {
-    color: '#626262',
   },
 })
 

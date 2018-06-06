@@ -42,6 +42,19 @@ const styles = StyleSheet.create({
   }
 });
 
+export const setupStyles = StyleSheet.create({
+  title: {
+    fontSize: 20,
+    fontFamily: 'HelveticaNeue',
+    fontWeight: 'bold',
+    color: '#A7A7A7',
+    textAlign: 'left',
+    margin: 20,
+    marginTop: 30,
+    marginBottom: 40,
+  },
+})
+
 const layoutStyles = StyleSheet.create({
   container: {
     flex: 1,

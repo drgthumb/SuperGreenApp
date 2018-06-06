@@ -4,6 +4,8 @@ import { View, Text, TextInput, Slider, Image, Button, TouchableOpacity, StyleSh
 import PropTypes from 'prop-types'
 import { Creators } from '../actions/ble'
 
+import textStyles from './TextStyles'
+import BigButton from './BigButton'
 import SetupLayout from './SetupLayout'
 
 import prev from './assets/images/paging-prev.png'
@@ -36,9 +38,11 @@ class SelfTest extends React.Component {
               <Image source={prev} />
             </TouchableOpacity>
             <View style={layoutStyles.selected}>
-              <Text style={styles.smallText}>Testing led</Text>
-              <Text style={styles.bigText}>{led+1}</Text>
-              <Text style={styles.smallText}>{LED_PLACES[led]}</Text>
+              <Text style={[textStyles.center, textStyles.text]}>
+                <Text>Testing led</Text>{'\n'}
+                <Text style={textStyles.bigStatus}>{led+1}</Text>{'\n'}
+                <Text>({LED_PLACES[led]})</Text>
+              </Text>
             </View>
             <TouchableOpacity onPress={this._handleLedChanged(led+1)} style={layoutStyles.paging} disabled={led == 5} style={{opacity: led == 5 ? 0.4 : 1}}>
               <Image source={next} />
@@ -46,13 +50,13 @@ class SelfTest extends React.Component {
           </View>
           <View style={layoutStyles.switches}>
             <View style={layoutStyles.radio}>
-              <Text style={styles.smallText}>Power switch:</Text>
+              <Text style={textStyles.text}>Power switch:{' '}</Text>
               <TouchableOpacity onPress={this._handlePowerChanged(power ? 0 : 100)} >
                 <Image source={power ? switchOn : switchOff} />
               </TouchableOpacity>
             </View>
             <View style={layoutStyles.brightness}>
-              <Text style={styles.smallText}>Brightness</Text>
+              <Text style={textStyles.text}>Brightness</Text>
               <View style={layoutStyles.slider}>
                 <Image style={layoutStyles.sliderPic} source={cloudy} />
                 <Slider value={duty}
@@ -63,6 +67,9 @@ class SelfTest extends React.Component {
                 <Image style={layoutStyles.sliderPic} source={sun} />
               </View>
             </View>
+          </View>
+          <View style={layoutStyles.next}>
+            <BigButton onPress={this._handleNext} />
           </View>
         </View>
       </SetupLayout>
@@ -83,6 +90,11 @@ class SelfTest extends React.Component {
     dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', this.duty(), value))
   }
 
+  _handleNext = () => {
+    const { device, navigation } = this.props
+    navigation.navigate('Lighting', { device: device.toJS() })
+  }
+  
   //
 
   duty() {
@@ -100,27 +112,6 @@ class SelfTest extends React.Component {
   }
 
 }
-
-const styles = StyleSheet.create({
-  title: {
-    fontSize: 20,
-    fontFamily: 'HelveticaNeue',
-    fontWeight: 'bold',
-    color: '#A7A7A7',
-    textAlign: 'left',
-    margin: 20,
-    marginTop: 30,
-    marginBottom: 40,
-  },
-  smallText: {
-    color: '#727272',
-    fontSize: 20,
-  },
-  bigText: {
-    color: '#31B840',
-    fontSize: 70,
-  },
-})
 
 const layoutStyles = StyleSheet.create({
   container: {
@@ -149,6 +140,8 @@ const layoutStyles = StyleSheet.create({
   },
   radio: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   brightness: {
     alignItems: 'center',
@@ -163,6 +156,9 @@ const layoutStyles = StyleSheet.create({
   },
   sliderTrack: {
     flex: 1,
+  },
+  next: {
+    marginLeft: 20, marginRight: 20,
   },
 })
 
