@@ -106,13 +106,13 @@ class Season extends React.Component {
   renderDateEditor(editParam) {
     const dateMonth = this.state[`${editParam}DateMonth`]
     const dateDay = this.state[`${editParam}DateDay`]
-    const items = _.times(48, (i) => ({label:`${MONTH_NAME[Math.floor(i / 4)]} ${Math.max(1, (i % 4) * 7)}`, value: i}))
+    const items = _.times(48, (i) => ({label:`${MONTH_NAME[Math.floor(i / 4)]} ${Math.max(1, (i % 4) * 7)}`, value: `${MONTH_NAME[Math.floor(i / 4)]} ${Math.max(1, (i % 4) * 7)}`}))
     return (
       <ParamEditor
         title={editParam == 'start' ? 'Simulated start date' : 'Simulated end date' }
         submit='Set date'
         icon={calendar}
-        value={dateMonth * 4 + dateDay / 7}
+        value={`${MONTH_NAME[dateMonth - 1]} ${dateDay}`}
         onValueChanged={this._handleDateChanged(editParam)}
         items={items} />
     )
@@ -196,16 +196,31 @@ class Season extends React.Component {
   }
 
   _handleDateChanged = (param) => (value) => {
-    console.log('_handleDateChanged', param, value)
     const { device, dispatch } = this.props
     const params = value.split(' ')
-    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `${param}`, parseInt(params[0])))
-    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `${param}Min`, parseInt(params[1])))
+
+    const state = this.state
+    state[`${param}DateMonth`] = MONTH_NAME.indexOf(params[0]) + 1
+    state[`${param}DateDay`] = parseInt(params[1])
+    this.setState(state)
+
+    const { startDateMonth, startDateDay, endDateMonth, endDateDay } = state
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'startDateMonth', startDateMonth))
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'startDateDay', startDateDay))
+
+    const sd = new Date(`${startDateMonth}/${startDateDay}`)
+    const ed = new Date(`${endDateMonth}/${endDateDay}`)
+    const timeDiff = Math.abs(ed.getTime() - sd.getTime()),
+          durationDays = Math.ceil(timeDiff / (1000 * 3600 * 24))
+
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'durationDays', durationDays))
+
     this.setState({editParam: null})
   }
 
   _handleDurationChanged = (value) => {
-    console.log('_handleDurationChanged', value);
+    const { device, dispatch } = this.props
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `durationDays`, value))
     this.setState({editDuration: false})
   }
 

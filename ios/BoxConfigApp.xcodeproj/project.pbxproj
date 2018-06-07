@@ -46,6 +46,7 @@
 		ADBDB9381DFEBF1600ED6528 /* libRCTBlob.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ADBDB9271DFEBF0700ED6528 /* libRCTBlob.a */; };
 		B07A71D7B7274747B34492A1 /* Entypo.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 575722DFEA69445780D8E126 /* Entypo.ttf */; };
 		C76A43772052E10300C8C335 /* libRCTAnimation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E9157331DD0AC6500FF2AA8 /* libRCTAnimation.a */; };
+		C7B10ACE20C94F28004453A6 /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = C7B10AA620C94F28004453A6 /* main.jsbundle */; };
 		C7D4877B2052F3A400AF4F54 /* libBleClient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C7D487552052F27F00AF4F54 /* libBleClient.a */; };
 		D419BA6669AC4E3580AC6DCE /* MaterialCommunityIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D195798B35734B3A9BF48C9B /* MaterialCommunityIcons.ttf */; };
 		D97D86C9BA1443AC92F3898D /* FontAwesome.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CD585F6A236A4E0BA4AC3A0D /* FontAwesome.ttf */; };
@@ -343,7 +344,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		008F07F21AC5B25A0029DE68 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
 		00C302A71ABCB8CE00DB3ED1 /* RCTActionSheet.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTActionSheet.xcodeproj; path = "../node_modules/react-native/Libraries/ActionSheetIOS/RCTActionSheet.xcodeproj"; sourceTree = "<group>"; };
 		00C302B51ABCB90400DB3ED1 /* RCTGeolocation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTGeolocation.xcodeproj; path = "../node_modules/react-native/Libraries/Geolocation/RCTGeolocation.xcodeproj"; sourceTree = "<group>"; };
 		00C302BB1ABCB91800DB3ED1 /* RCTImage.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTImage.xcodeproj; path = "../node_modules/react-native/Libraries/Image/RCTImage.xcodeproj"; sourceTree = "<group>"; };
@@ -380,6 +380,7 @@
 		9D597665AD294B918E2EFF5E /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
 		A20671C794464F9F8FE259C7 /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
 		ADBDB91F1DFEBF0600ED6528 /* RCTBlob.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTBlob.xcodeproj; path = "../node_modules/react-native/Libraries/Blob/RCTBlob.xcodeproj"; sourceTree = "<group>"; };
+		C7B10AA620C94F28004453A6 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = main.jsbundle; path = BoxConfigApp/main.jsbundle; sourceTree = "<group>"; };
 		CD585F6A236A4E0BA4AC3A0D /* FontAwesome.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
 		D195798B35734B3A9BF48C9B /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		D9475DED50224787B46528E4 /* RNVectorIcons.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNVectorIcons.xcodeproj; path = "../node_modules/react-native-vector-icons/RNVectorIcons.xcodeproj"; sourceTree = "<group>"; };
@@ -523,7 +524,7 @@
 		13B07FAE1A68108700A75B9A /* BoxConfigApp */ = {
 			isa = PBXGroup;
 			children = (
-				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
+				C7B10AA620C94F28004453A6 /* main.jsbundle */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -1170,6 +1171,7 @@
 				B07A71D7B7274747B34492A1 /* Entypo.ttf in Resources */,
 				8D4E122D2472465D85EA2BE8 /* EvilIcons.ttf in Resources */,
 				56949E2A4CAD444C9DCC9997 /* Feather.ttf in Resources */,
+				C7B10ACE20C94F28004453A6 /* main.jsbundle in Resources */,
 				D97D86C9BA1443AC92F3898D /* FontAwesome.ttf in Resources */,
 				44378D4891944712A0921010 /* Foundation.ttf in Resources */,
 				959844EFE0A34759AF0540F2 /* Ionicons.ttf in Resources */,
