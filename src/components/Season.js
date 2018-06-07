@@ -14,6 +14,7 @@ import sunrise from './assets/images/sunrise.png'
 import sunset from './assets/images/sunset.png'
 import edit from './assets/images/edit.png'
 import calendar from './assets/images/calendar.png'
+import wait from './assets/images/wait.png'
 
 const MONTH_NAME = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
@@ -25,12 +26,12 @@ class ParamEditor extends React.Component {
 
   render() {
     const { value } = this.state
-    const { title, icon, value: propsValue } = this.props
+    const { title, submit, icon, value: propsValue, items } = this.props
     return (
       <View style={layoutStyles.editorContainer}>
         <View style={layoutStyles.editorTitle}>
           <Image style={layoutStyles.editorPic} source={icon} />
-          <Text style={[textStyles.text, textStyles.title]}>{title}</Text>
+          <Text style={[textStyles.text, textStyles.title]}>{' '}{title}</Text>
         </View>
         <View style={layoutStyles.pickerContainer}>
           <Picker
@@ -39,14 +40,14 @@ class ParamEditor extends React.Component {
             itemStyle={[textStyles.text, layoutStyles.pickerItems]}
             onValueChange={this._handleValueChanged}>
             {
-              _.times(48, (i) => (
-                <Picker.Item key={i} label={`${Math.floor(i / 2)}h${(i % 2) * 30}`} value={`${Math.floor(i / 2)}h${(i % 2) * 30}`} />
+              _.map(items, (item, i) => (
+                <Picker.Item key={i} {...item} />
               ))
             }
           </Picker>
         </View>
         <View style={layoutStyles.next}>
-          <BigButton title='Set hour' onPress={this._handleSelected} />
+          <BigButton title={submit} onPress={this._handleSelected} />
         </View>
       </View>
     )
@@ -79,18 +80,17 @@ class Season extends React.Component {
     const ed = new Date(sd)
     ed.setDate(sd.getDate() + durationDays);
 
-    this.state = {editParam: null, startDateMonth: sd.getMonth() + 1, startDateDay: sd.getDate(), endDateMonth: ed.getMonth() + 1, endDateDay: ed.getDate()}
+    this.state = {editParam: null, editDuration: false, startDateMonth: sd.getMonth() + 1, startDateDay: sd.getDate(), endDateMonth: ed.getMonth() + 1, endDateDay: ed.getDate()}
   }
 
   renderParam(param) {
-    const { device } = this.props
     const startDateMonth = this.state[`${param}DateMonth`]
     const startDateDay = this.state[`${param}DateDay`]
 
     return (
       <View style={layoutStyles.timerContainer}>
         <Text style={[textStyles.text, textStyles.big]}>{param == 'start' ? 'From:' : 'To:'}</Text>
-        <View style={styles.calendar}>
+        <View style={layoutStyles.paramValue}>
           <Image source={calendar} />
           <Text style={[textStyles.text, textStyles.big]}>
             {' '}{MONTH_NAME[startDateMonth-1]} {startDateDay}
@@ -103,25 +103,64 @@ class Season extends React.Component {
     )
   }
 
-  renderEditor() {
-    const { editParam } = this.state
+  renderDateEditor(editParam) {
+    const dateMonth = this.state[`${editParam}DateMonth`]
+    const dateDay = this.state[`${editParam}DateDay`]
+    const items = _.times(48, (i) => ({label:`${MONTH_NAME[Math.floor(i / 4)]} ${Math.max(1, (i % 4) * 7)}`, value: i}))
+    return (
+      <ParamEditor
+        title={editParam == 'start' ? 'Simulated start date' : 'Simulated end date' }
+        submit='Set date'
+        icon={calendar}
+        value={dateMonth * 4 + dateDay / 7}
+        onValueChanged={this._handleDateChanged(editParam)}
+        items={items} />
+    )
+  }
+
+  renderDurationEditor() {
     const { device } = this.props
-    const startDateMonth = this.state[`${editParam}DateMonth`]
-    const startDateDay = this.state[`${editParam}DateDay`]
+    const durationDays = device.getIn(['services', 'config', 'characteristics', `durationDays`, 'value'])
+    const items = _.times(240, (i) => ({label:`${i} days`, value: i}))
 
     return (
       <ParamEditor
-        title={editParam == 'start' ? 'Sunrise time' : 'Sunset time' }
-        icon={editParam == 'start' ? sunrise : sunset}
-        value={`${startDateMonth}h${startDateDay}`}
-        onValueChanged={this._handleParamChanged(editParam)} />
+        title='Simulation duration'
+        submit='Set duration'
+        icon={wait}
+        value={durationDays}
+        onValueChanged={this._handleDurationChanged}
+        items={items} />
+    )
+  }
+
+  renderDuration() {
+    const { device } = this.props
+    const durationDays = device.getIn(['services', 'config', 'characteristics', `durationDays`, 'value'])
+
+    return (
+      <View style={layoutStyles.durationContainer}>
+        <Text style={[textStyles.text, textStyles.big]}>Duration</Text>
+        <View style={layoutStyles.paramValue}>
+          <Image source={wait} />
+          <Text style={[textStyles.text, textStyles.big]}>
+            {' '}{durationDays} days
+          </Text>
+        </View>
+        <TouchableOpacity onPress={this._handleEditDuration}>
+          <Image source={edit} />
+        </TouchableOpacity>
+      </View>
     )
   }
 
   renderBody() {
-    const { editParam } = this.state
+    const { editParam, editDuration } = this.state
+    if (editDuration) {
+      return this.renderDurationEditor()
+    }
     if (editParam) {
-      return this.renderEditor()
+      return this.renderDateEditor(editParam)
     }
     return (
       <View style={layoutStyles.container}>
@@ -129,17 +168,18 @@ class Season extends React.Component {
         {this.renderParam('start')}
         <Separator />
         {this.renderParam('end')}
+        {this.renderDuration()}
       </View>
     )
   }
 
   render() {
-    const { editParam } = this.state
+    const { editParam, editDuration } = this.state
     return (
       <SetupLayout title='Lighting setup'>
         { this.renderBody() }
         {
-          !editParam && (<View style={layoutStyles.next}>
+          !editParam && !editDuration && (<View style={layoutStyles.next}>
             <BigButton onPress={this._handleNext} />
           </View>)
         }
@@ -151,15 +191,22 @@ class Season extends React.Component {
     this.setState({editParam: param})
   }
 
-  _handleParamChanged = (param) => (value) => {
-    console.log('_handleParamChanged', param, value)
-    /*
-      const { device, dispatch } = this.props
-      const params = value.split('h')
-      dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `${param}Hour`, parseInt(params[0])))
-      dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `${param}Min`, parseInt(params[1])))
-    */
+  _handleEditDuration = () => {
+    this.setState({editDuration: true})
+  }
+
+  _handleDateChanged = (param) => (value) => {
+    console.log('_handleDateChanged', param, value)
+    const { device, dispatch } = this.props
+    const params = value.split(' ')
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `${param}`, parseInt(params[0])))
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `${param}Min`, parseInt(params[1])))
     this.setState({editParam: null})
+  }
+
+  _handleDurationChanged = (value) => {
+    console.log('_handleDurationChanged', value);
+    this.setState({editDuration: false})
   }
 
   _handleNext = () => {
@@ -178,11 +225,6 @@ const styles = StyleSheet.create({
     marginTop: 30,
     marginBottom: 40,
   },
-  calendar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 })
 
 const layoutStyles = StyleSheet.create({
@@ -199,10 +241,13 @@ const layoutStyles = StyleSheet.create({
     marginLeft: 25, marginRight: 25,
     marginBottom: 20,
   },
-  value: {
-    flex: 1,
+  paramValue: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   next: {
+    marginTop: 10,
     marginLeft: 20, marginRight: 20,
   },
   editorBackground: {
@@ -236,6 +281,17 @@ const layoutStyles = StyleSheet.create({
   pickerItems: {
     fontWeight: 'bold',
     fontSize: 30,
+  },
+  durationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    margin: 25,
+    padding: 10,
+
+    borderWidth: 1,
+    borderColor: '#979797',
+    borderRadius: 10,
   },
 })
 
