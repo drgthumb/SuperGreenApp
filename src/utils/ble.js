@@ -170,13 +170,14 @@ const characteristicNameForUUID = (suuid, uuid) => SERVICE_MAPPING[suuid] && SER
 const characteristicInitialValueForUUID = (suuid, uuid) => SERVICE_MAPPING[suuid] && SERVICE_MAPPING[suuid].characteristics[uuid] && SERVICE_MAPPING[suuid].characteristics[uuid].initialValue
 const characteristicTypeForUUID = (suuid, uuid) => SERVICE_MAPPING[suuid] && SERVICE_MAPPING[suuid].characteristics[uuid] && SERVICE_MAPPING[suuid].characteristics[uuid].type || ((v) => v)
 
-const deviceToObject = async (device) => {
+const deviceToObject = async (device, onChange) => {
   const res = {
     id: device.id,
     name: device.name,
     services: {}
   }
   services = await device.services()
+  const loadable_characteristics = []
   for (let i in services) {
     let service = services[i]
     let characteristics = await service.characteristics()
@@ -187,14 +188,22 @@ const deviceToObject = async (device) => {
     }
     for (let j in characteristics) {
       if (!characteristics[j].isReadable) continue
-      let characteristic = await characteristics[j].read()
-      res.services[serviceNameForUUID(service.uuid)].characteristics[characteristicNameForUUID(service.uuid, characteristic.uuid)] = {
-        uuid: characteristic.uuid,
-        name: characteristicNameForUUID(service.uuid, characteristic.uuid),
-        value: characteristicInitialValueForUUID(service.uuid, characteristic.uuid) || characteristicTypeForUUID(service.uuid, characteristic.uuid)(characteristic.value),
+      loadable_characteristics.push(characteristics[j])
+      res.services[serviceNameForUUID(service.uuid)].characteristics[characteristicNameForUUID(service.uuid, characteristics[j].uuid)] = {
+        uuid: characteristics[j].uuid,
+        loaded: false,
+        name: characteristicNameForUUID(service.uuid, characteristics[j].uuid),
+        value: characteristicInitialValueForUUID(service.uuid, characteristics[j].uuid),
       }
     }
   }
+  setTimeout(() => {
+    loadable_characteristics.forEach((characteristic) => {
+      characteristic.read().then((characteristic) => {
+        onChange(device.id, serviceNameForUUID(characteristic.serviceUUID), characteristicNameForUUID(characteristic.serviceUUID, characteristic.uuid), characteristicTypeForUUID(characteristic.serviceUUID, characteristic.uuid)(characteristic.value))
+      });
+    })
+  }, 0);
   return res
 }
 
@@ -255,7 +264,6 @@ const listenDevices = (onDeviceFound, onValueChange, onError) => {
       return
     }
 
-    console.log(device.name);
     if (device.name == NAME_MATCH) {
       console.log('Found device', device.name)
       const connected = await device.isConnected()
@@ -265,7 +273,7 @@ const listenDevices = (onDeviceFound, onValueChange, onError) => {
       processing[device.id] = true
       device = await device.connect()
       await device.discoverAllServicesAndCharacteristics()
-      const deviceObj = await deviceToObject(device)
+      const deviceObj = await deviceToObject(device, onValueChange)
       DEVICE_MAPPING[device.id] = deviceObj
       monitorCharacteristics(device, onValueChange, onError)
       await setCharacteristicValue(device.id, 'config', 'time', Date.now() / 1000)

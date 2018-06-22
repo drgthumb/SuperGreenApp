@@ -17,7 +17,7 @@ class DeviceList extends React.Component {
             <TouchableOpacity key={key} activeOpacity={0.8} onPress={() => this._handleDeviceSelected(devices.get(key))}>
               <View style={styles.device}>
                 <View style={styles.horizontal}>
-                  <Text style={styles.name}>{devices.getIn([key, 'name'])}</Text>
+                  <Text style={styles.name}>{devices.getIn([key, 'services', 'config', 'characteristics', `name`, 'value'])}</Text>
                 </View>
                 <Text style={styles.uuid}>{devices.getIn([key, 'id'])}</Text>
               </View>
