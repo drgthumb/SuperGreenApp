@@ -11,7 +11,7 @@ class DeviceList extends React.Component {
     const { dispatch, devices } = this.props
     const keys = devices.keySeq().toArray().sort()
     return (
-      <View>
+      <View style={styles.container}>
         {
           keys.map(key => (
             <TouchableOpacity key={key} activeOpacity={0.8} onPress={() => this._handleDeviceSelected(devices.get(key))}>
@@ -35,6 +35,9 @@ class DeviceList extends React.Component {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   device: {
     height: 100,
     justifyContent: 'center',

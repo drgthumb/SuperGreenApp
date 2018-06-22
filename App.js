@@ -4,6 +4,9 @@ import { Provider } from 'react-redux'
 import { createStore, applyMiddleware } from 'redux'
 import createSagaMiddleware from 'redux-saga'
 
+import { persistStore } from 'redux-persist'
+import { PersistGate } from 'redux-persist/integration/react'
+
 import AppReducer from './src/reducers'
 import AppWithNavigationState from './src/navigators/AppNavigator'
 import { middleware } from './src/utils/redux'
@@ -18,6 +21,7 @@ const composeEnhancers =
     // Specify extension’s options like name, actionsBlacklist, actionsCreators, serialize...
   }) : compose;
 const store = createStore(AppReducer, composeEnhancers(applyMiddleware(sagaMiddleware, middleware)))
+const persistor = persistStore(store)
 
 sagaMiddleware.run(rootSaga)
 
@@ -25,7 +29,7 @@ class App extends React.Component {
   render() {
     return (
       <Provider store={store}>
-        <AppWithNavigationState />
+          <AppWithNavigationState />
       </Provider>
     )
   }

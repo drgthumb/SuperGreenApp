@@ -1,7 +1,7 @@
 import { BleManager } from 'react-native-ble-plx'
 import { Buffer } from 'buffer'
 
-const NAME_MATCH = /^🤖🍁/
+const NAME_MATCH = '🤖🍁'
 
 let bleManager// = new BleManager()
 
@@ -19,6 +19,11 @@ const SERVICE_MAPPING = {
   '000000ff-0000-1000-8000-00805f9b34fb': {
     name: 'config',
     characteristics: {
+      'a6317732-8c0e-ee6e-68ee-61f13d4f8b25': {
+        name: 'name',
+        time: stringValue,
+      },
+
       /* TIME */
       '40f9ee4f-e19e-4a8a-aa33-b4aae23b6a9b': {
         name: 'time',
@@ -181,6 +186,7 @@ const deviceToObject = async (device) => {
       characteristics: {},
     }
     for (let j in characteristics) {
+      if (!characteristics[j].isReadable) continue
       let characteristic = await characteristics[j].read()
       res.services[serviceNameForUUID(service.uuid)].characteristics[characteristicNameForUUID(service.uuid, characteristic.uuid)] = {
         uuid: characteristic.uuid,
@@ -203,7 +209,7 @@ const monitorCharacteristics = async (device, onChange, onError) => {
         continue
       characteristic.monitor((error, characteristic) => {
         if (error) {
-          onError(device.name, error)
+          onError(device.id, error)
           return
         }
         onChange(device.id, serviceNameForUUID(service.uuid), characteristicNameForUUID(service.uuid, characteristic.uuid), characteristicTypeForUUID(service.uuid, characteristic.uuid)(characteristic.value))
@@ -238,13 +244,25 @@ const init = async () => {
 }
 
 const listenDevices = (onDeviceFound, onValueChange, onError) => {
+  const processing = {}
   bleManager.startDeviceScan(null, null, async (error, device) => {
     if (error) {
       onError(null, error)
       return
     }
 
-    if (device.name && device.name.match(NAME_MATCH)) {
+    if (!device.name) {
+      return
+    }
+
+    console.log(device.name);
+    if (device.name == NAME_MATCH) {
+      console.log('Found device', device.name)
+      const connected = await device.isConnected()
+      if (connected || processing[device.id] == true) {
+        return
+      }
+      processing[device.id] = true
       device = await device.connect()
       await device.discoverAllServicesAndCharacteristics()
       const deviceObj = await deviceToObject(device)
@@ -252,6 +270,7 @@ const listenDevices = (onDeviceFound, onValueChange, onError) => {
       monitorCharacteristics(device, onValueChange, onError)
       await setCharacteristicValue(device.id, 'config', 'time', Date.now() / 1000)
       onDeviceFound(deviceObj)
+      processing[device.id] = false
     }
   })
   return () => {

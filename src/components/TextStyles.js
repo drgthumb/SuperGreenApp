@@ -23,9 +23,18 @@ const styles = StyleSheet.create({
     color: '#31B840',
     fontSize: 70,
   },
+  bigNumber: {
+    fontSize: 60,
+  },
+  medium: {
+    fontSize: 17,
+  },
   big: {
     fontSize: 22,
   },
+  thin: {
+    fontFamily: 'HelveticaNeue-Thin',
+  }
 })
 
 export default styles
