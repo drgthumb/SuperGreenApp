@@ -15,7 +15,7 @@ function ble(state = initialState, action) {
       break
     case Types.CHARACTERISTIC_CHANGED:
     case Types.SET_CHARACTERISTIC_VALUE:
-      nextState = state.updateIn(['devices', action.deviceId, 'services', action.serviceName, 'characteristics', action.characteristicName], (v) => v.setIn('value', action.value).setIn('loaded', true))
+      nextState = state.updateIn(['devices', action.deviceId, 'services', action.serviceName, 'characteristics', action.characteristicName], (v) => v.set('value', action.value).set('loaded', true))
       break
     case Types.ERROR:
       if (action.deviceId) {

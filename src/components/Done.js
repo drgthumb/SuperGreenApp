@@ -5,37 +5,31 @@ import PropTypes from 'prop-types'
 import { Creators } from '../actions/ble'
 
 import SetupLayout from './SetupLayout'
+import BigButton from './BigButton'
 
-class Wait extends React.Component {
-
-  componentWillReceiveProps(newProps) {
-    const { devices, navigation, } = newProps;
-    const { devices: newDevices, } = this.props;
-    if (devices.size != 0) {
-      const device = devices.valueSeq().get(0)
-      if (device.getIn(['services', 'config', 'characteristics', 'state', 'loaded']) == false) {
-        return
-      }
-      if (device.getIn(['services', 'config', 'characteristics', 'state', 'value']) == 0) {
-        navigation.navigate('Wifi', { device: device.toJS() })
-      } else {
-        navigation.navigate('Device', { device: device.toJS() })
-      }
-    }
-  }
+class Done extends React.Component {
 
   render() {
     return (
       <SetupLayout title='Welcome to chronic-o-matic'>
         <View style={layoutStyles.container}>
           <Text style={styles.title}>
-            Looking for the new box,{"\n"}
-            please ensure that it is plugged in..
+            Setup done !{"\n"}
+            
           </Text>
-          <ActivityIndicator size="large" />
+        </View>
+        <View style={layoutStyles.next}>
+          <BigButton title='Start 🤖🍁' onPress={this._handleStart} />
         </View>
       </SetupLayout>
     )
+  }
+
+  _handleStart = () => {
+    const { device, dispatch, navigation } = this.props
+    console.log('_handleStart')
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `state`, 2))
+    navigation.navigate('Device', { device: device.toJS() })
   }
 
 }
@@ -58,10 +52,13 @@ const layoutStyles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
   },
+  next: {
+    marginLeft: 20, marginRight: 20,
+  },
 })
 
 const mapStateToProps = (state, props) => ({
-  devices: state.getIn(['ble', 'devices']),
+  device: state.getIn(['ble', 'devices', props.navigation.getParam('device').id]),
 })
 
-export default connect(mapStateToProps)(Wait)
+export default connect(mapStateToProps)(Done)

@@ -14,6 +14,7 @@ import SelfTest from '../components/SelfTest'
 import Lighting from '../components/Lighting'
 import Classic from '../components/Classic'
 import Season from '../components/Season'
+import Done from '../components/Done'
 import { addListener } from '../utils/redux'
 
 export const AppNavigator = createSwitchNavigator({
@@ -24,6 +25,7 @@ export const AppNavigator = createSwitchNavigator({
     Lighting,
     Classic,
     Season,
+    Done,
   }, {
     headerMode: 'none',
     initialRouteName: 'Wifi',

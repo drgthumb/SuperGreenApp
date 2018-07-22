@@ -1,3 +1,4 @@
+import React from 'react'
 import { BleManager } from 'react-native-ble-plx'
 import { Buffer } from 'buffer'
 
@@ -176,66 +177,68 @@ const deviceToObject = async (device, onChange) => {
     name: device.name,
     services: {}
   }
-  services = await device.services()
-  const loadable_characteristics = []
-  for (let i in services) {
-    let service = services[i]
-    let characteristics = await service.characteristics()
-    res.services[serviceNameForUUID(service.uuid)] = {
-      uuid: service.uuid,
-      name: serviceNameForUUID(service.uuid),
-      characteristics: {},
-    }
-    for (let j in characteristics) {
-      if (!characteristics[j].isReadable) continue
-      loadable_characteristics.push(characteristics[j])
-      res.services[serviceNameForUUID(service.uuid)].characteristics[characteristicNameForUUID(service.uuid, characteristics[j].uuid)] = {
-        uuid: characteristics[j].uuid,
-        loaded: false,
-        name: characteristicNameForUUID(service.uuid, characteristics[j].uuid),
-        value: characteristicInitialValueForUUID(service.uuid, characteristics[j].uuid),
+
+  try {
+    await device.discoverAllServicesAndCharacteristics()
+    services = await device.services()
+    for (let i in services) {
+      let service = services[i]
+      let characteristics = await service.characteristics()
+      res.services[serviceNameForUUID(service.uuid)] = {
+        uuid: service.uuid,
+        name: serviceNameForUUID(service.uuid),
+        characteristics: {},
+      }
+      for (let j in characteristics) {
+        if (!characteristics[j].isReadable) continue
+        res.services[serviceNameForUUID(service.uuid)].characteristics[characteristicNameForUUID(service.uuid, characteristics[j].uuid)] = {
+          uuid: characteristics[j].uuid,
+          loaded: false,
+          name: characteristicNameForUUID(service.uuid, characteristics[j].uuid),
+          value: characteristicInitialValueForUUID(service.uuid, characteristics[j].uuid),
+        }
       }
     }
+  } catch(e) {
+    console.log('deviceToObject', e)
   }
-  setTimeout(() => {
-    loadable_characteristics.forEach((characteristic) => {
-      characteristic.read().then((characteristic) => {
-        onChange(device.id, serviceNameForUUID(characteristic.serviceUUID), characteristicNameForUUID(characteristic.serviceUUID, characteristic.uuid), characteristicTypeForUUID(characteristic.serviceUUID, characteristic.uuid)(characteristic.value))
-      });
-    })
-  }, 0);
+
   return res
 }
 
-const monitorCharacteristics = async (device, onChange, onError) => {
-  services = await device.services()
-  for (let i in services) {
-    let service = services[i]
-    let characteristics = await service.characteristics()
-    for (let j in characteristics) {
-      let characteristic = characteristics[j]
-      if (!(characteristic.isNotifiable || characteristic.isIndicatable))
-        continue
-      characteristic.monitor((error, characteristic) => {
-        if (error) {
-          onError(device.id, error)
-          return
-        }
-        onChange(device.id, serviceNameForUUID(service.uuid), characteristicNameForUUID(service.uuid, characteristic.uuid), characteristicTypeForUUID(service.uuid, characteristic.uuid)(characteristic.value))
-      });
+const setCharacteristicValue = async (deviceId, serviceName, characteristicName, value) => {
+  try {
+    const serviceUUID = UUIDForServiceName(serviceName),
+      characteristicUUID = UUIDForCharacteristicName(serviceUUID, characteristicName)
+    if (typeof value == 'number') {
+      const b = new Buffer(4);
+      b.writeIntLE(value, 0, 4);
+      await bleManager.writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, b.toString('base64'))
+    } else {
+      await bleManager.writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, new Buffer(value).toString('base64'))
     }
+  } catch(e) {
+    console.log('setCharacteristicValue', e)
   }
 }
 
-const setCharacteristicValue = async (deviceId, serviceName, characteristicName, value) => {
-  const serviceUUID = UUIDForServiceName(serviceName),
-        characteristicUUID = UUIDForCharacteristicName(serviceUUID, characteristicName)
-  if (typeof value == 'number') {
-    const b = new Buffer(4);
-    b.writeIntLE(value, 0, 4);
-    await bleManager.writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, b.toString('base64'))
-  } else {
-    await bleManager.writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, new Buffer(value).toString('base64'))
+const getCharacterisitcValue = async (deviceId, serviceName, characteristicName, onChange, onError) => {
+  try {
+    const serviceUUID = UUIDForServiceName(serviceName),
+      characteristicUUID = UUIDForCharacteristicName(serviceUUID, characteristicName)
+    const characteristic = await bleManager.readCharacteristicForDevice(deviceId, serviceUUID, characteristicUUID)
+    if (characteristic.isNotifiable) {
+      characteristic.monitor((error, characteristic) => {
+        if (error) {
+          console.log(error)
+          if (onError) onError(deviceId, error)
+        }
+        onChange(deviceId, characteristic.serviceUUID, characteristic.uuid, characteristic.value)
+      })
+    }
+    return characteristicTypeForUUID(characteristic.serviceUUID, characteristic.uuid)(characteristic.value)
+  } catch(e) {
+    console.log('readCharacteristicValue', e)
   }
 }
 
@@ -271,13 +274,15 @@ const listenDevices = (onDeviceFound, onValueChange, onError) => {
         return
       }
       processing[device.id] = true
-      device = await device.connect()
-      await device.discoverAllServicesAndCharacteristics()
-      const deviceObj = await deviceToObject(device, onValueChange)
-      DEVICE_MAPPING[device.id] = deviceObj
-      monitorCharacteristics(device, onValueChange, onError)
-      await setCharacteristicValue(device.id, 'config', 'time', Date.now() / 1000)
-      onDeviceFound(deviceObj)
+      try {
+        device = await device.connect()
+        const deviceObj = await deviceToObject(device)
+        DEVICE_MAPPING[device.id] = deviceObj
+        onDeviceFound(deviceObj)
+        await setCharacteristicValue(device.id, 'config', 'time', Date.now() / 1000)
+      } catch (e) {
+        console.log('listenDevices', e)
+      }
       processing[device.id] = false
     }
   })
@@ -286,8 +291,26 @@ const listenDevices = (onDeviceFound, onValueChange, onError) => {
   }
 }
 
+class BLEHOC extends React.Component {
+
+  componentDidMount() {
+    const { device } = this.props
+    bleManager.monitorCharacteristicForDevice(device.get('id'), )
+  }
+
+  render() {
+    const { children } = this.props
+    return (
+      {...children}
+    )
+  }
+
+}
+
 export {
   init,
   listenDevices,
+  getCharacterisitcValue,
   setCharacteristicValue,
+  BLEHOC,
 }

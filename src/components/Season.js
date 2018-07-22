@@ -226,7 +226,7 @@ class Season extends React.Component {
 
   _handleNext = () => {
     const { device, navigation } = this.props
-    navigation.navigate('Device', { device: device.toJS() })
+    navigation.navigate('Done', { device: device.toJS() })
   }
 }
 

@@ -3,7 +3,7 @@ import { call, take, takeEvery, put } from 'redux-saga/effects'
 import { eventChannel, END } from 'redux-saga'
 
 import { Creators, Types } from '../actions/ble';
-import { init, listenDevices, setCharacteristicValue } from '../utils/ble'
+import { init, listenDevices, readCharacterisitcValue, setCharacteristicValue } from '../utils/ble'
 
 const devicesFoundEventChannel = () => 
   eventChannel(emitter => 
@@ -18,8 +18,13 @@ const setCharacteristicValueSaga = function*(action) {
   yield call(setCharacteristicValue, action.deviceId, action.serviceName, action.characteristicName, action.value)
 }
 
+const readCharacterisitcValueSaga = function(action) {
+  console.log('readCharacterisitcValue', action);
+}
+
 const bleSaga = function*() {
   yield takeEvery(Types.SET_CHARACTERISTIC_VALUE, setCharacteristicValueSaga);
+  yield takeEvery(Types.READ_CHARACTERISTIC_VALUE, readCharacteristicValueSaga);
   yield call(init)
   const chan = yield call(devicesFoundEventChannel)
 
