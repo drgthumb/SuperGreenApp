@@ -1,10 +1,14 @@
+import { fromJS } from 'immutable'
 import React from 'react'
 import { BleManager } from 'react-native-ble-plx'
 import { Buffer } from 'buffer'
 
+import { Creators } from '../actions/ble'
+
 const NAME_MATCH = '🤖🍁'
 
-let bleManager// = new BleManager()
+const bleManager = new BleManager()
+const emitter // saga channel emitter
 
 const intValue = (v) => {
   try {
@@ -160,8 +164,6 @@ const SERVICE_MAPPING = {
   },
 }
 
-const DEVICE_MAPPING = {}
-
 // TODO fix this mess
 const UUIDForServiceName = (name) => Object.keys(SERVICE_MAPPING).find((v) => SERVICE_MAPPING[v].name == name)
 const UUIDForCharacteristicName = (serviceUUID, name) => Object.keys(SERVICE_MAPPING[serviceUUID].characteristics).find((v) => SERVICE_MAPPING[serviceUUID].characteristics[v].name == name)
@@ -171,12 +173,8 @@ const characteristicNameForUUID = (suuid, uuid) => SERVICE_MAPPING[suuid] && SER
 const characteristicInitialValueForUUID = (suuid, uuid) => SERVICE_MAPPING[suuid] && SERVICE_MAPPING[suuid].characteristics[uuid] && SERVICE_MAPPING[suuid].characteristics[uuid].initialValue
 const characteristicTypeForUUID = (suuid, uuid) => SERVICE_MAPPING[suuid] && SERVICE_MAPPING[suuid].characteristics[uuid] && SERVICE_MAPPING[suuid].characteristics[uuid].type || ((v) => v)
 
-const deviceToObject = async (device, onChange) => {
-  const res = {
-    id: device.id,
-    name: device.name,
-    services: {}
-  }
+const deviceServicesToObject = async (device) => {
+  const res = {}
 
   try {
     await device.discoverAllServicesAndCharacteristics()
@@ -194,6 +192,7 @@ const deviceToObject = async (device, onChange) => {
         res.services[serviceNameForUUID(service.uuid)].characteristics[characteristicNameForUUID(service.uuid, characteristics[j].uuid)] = {
           uuid: characteristics[j].uuid,
           loaded: false,
+          monitored: false,
           name: characteristicNameForUUID(service.uuid, characteristics[j].uuid),
           value: characteristicInitialValueForUUID(service.uuid, characteristics[j].uuid),
         }
@@ -210,6 +209,8 @@ const setCharacteristicValue = async (deviceId, serviceName, characteristicName,
   try {
     const serviceUUID = UUIDForServiceName(serviceName),
       characteristicUUID = UUIDForCharacteristicName(serviceUUID, characteristicName)
+
+    emitter(Creators.settingCharacteristicValue(deviceId, serviceName, characteristicName))
     if (typeof value == 'number') {
       const b = new Buffer(4);
       b.writeIntLE(value, 0, 4);
@@ -217,49 +218,42 @@ const setCharacteristicValue = async (deviceId, serviceName, characteristicName,
     } else {
       await bleManager.writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, new Buffer(value).toString('base64'))
     }
+    emitter(Creators.characteristicValueSet(deviceId, serviceName, characteristicName))
   } catch(e) {
+    emitter(Creators.setCharacteristicValueError(deviceId, serviceName, characteristicName, fromJS(e)))
     console.log('setCharacteristicValue', e)
   }
 }
 
-const getCharacterisitcValue = async (deviceId, serviceName, characteristicName, onChange, onError) => {
+const getCharacterisitcValue = async (deviceId, serviceName, characteristicName) => {
   try {
     const serviceUUID = UUIDForServiceName(serviceName),
       characteristicUUID = UUIDForCharacteristicName(serviceUUID, characteristicName)
+
+    emitter(Creators.gettingCharacteristicValue(deviceId, serviceName, characteristicName))
     const characteristic = await bleManager.readCharacteristicForDevice(deviceId, serviceUUID, characteristicUUID)
     if (characteristic.isNotifiable) {
       characteristic.monitor((error, characteristic) => {
         if (error) {
-          console.log(error)
-          if (onError) onError(deviceId, error)
+          emitter(Creators.monitoringError(deviceId, serviceName, characteristicName, fromJS(error)))
         }
-        onChange(deviceId, characteristic.serviceUUID, characteristic.uuid, characteristic.value)
+        emitter(Creators.characteristicChanged(deviceId, characteristic.serviceUUID, characteristic.uuid, characteristicTypeForUUID(characteristic.serviceUUID, characteristic.uuid)(characteristic.value)))
       })
     }
-    return characteristicTypeForUUID(characteristic.serviceUUID, characteristic.uuid)(characteristic.value)
+    const value = characteristicTypeForUUID(characteristic.serviceUUID, characteristic.uuid)(characteristic.value)
+    emitter(Creators.gotCharacteristicValue(deviceId, serviceName, characteristicName, value))
+    return value
   } catch(e) {
-    console.log('readCharacteristicValue', e)
+    emitter(Creators.getCharacteristicValueError(deviceId, serviceName, characteristicName, fromJS(e)))
+    console.log('getCharacteristicValue', e)
   }
 }
 
-const init = async () => {
-  bleManager = new BleManager()
-  await new Promise((resolve, reject) => { 
-    const subscription = bleManager.onStateChange((state) => {
-      if (state === 'PoweredOn') {
-        subscription.remove()
-        resolve()
-      } else if (state === 'PoweredOff') {
-      }
-    }, true)
-  })
-}
-
-const listenDevices = (onDeviceFound, onValueChange, onError) => {
-  const processing = {}
+const listenDevices = () => {
+  const no_dups = {}
   bleManager.startDeviceScan(null, null, async (error, device) => {
     if (error) {
-      onError(null, error)
+      emitter(Creators.scanError(error))
       return
     }
 
@@ -269,33 +263,65 @@ const listenDevices = (onDeviceFound, onValueChange, onError) => {
 
     if (device.name == NAME_MATCH) {
       console.log('Found device', device.name)
-      const connected = await device.isConnected()
-      if (connected || processing[device.id] == true) {
+      if (no_dups[device.id] == true) {
         return
       }
-      processing[device.id] = true
+      no_dups[device.id] = true
+
       try {
-        device = await device.connect()
-        const deviceObj = await deviceToObject(device)
-        DEVICE_MAPPING[device.id] = deviceObj
-        onDeviceFound(deviceObj)
+        const deviceObj = {
+          id: device.id,
+          name: device.name,
+          connected: false,
+          services: {},
+        }
+        emitter(Creators.deviceDiscovered(fromJS(deviceObj)))
+
+        try {
+          emitter(Creators.deviceConnecting(device.id))
+          device = await device.connect()
+          emitter(Creators.deviceConnected(device.id))
+        } catch(e) {
+          emitter(Creators.deviceConnectionError(device.id, fromJS(e)))
+          throw e
+        }
+
+        device.onDisconnected(async (error, device) => {
+          emitter(Creators.deviceDisconnected(device.id))
+          no_dups[device.id] = undefined
+        })
+
+        deviceObj.services = await deviceServicesToObject(device)
+        onDeviceDiscovered(deviceObj)
         await setCharacteristicValue(device.id, 'config', 'time', Date.now() / 1000)
       } catch (e) {
         console.log('listenDevices', e)
+        emitter(Creators.deviceDiscoverError(device.id, fromJS(e)))
+        no_dups[device.id] = undefined
       }
-      processing[device.id] = false
     }
   })
-  return () => {
-    bleManager.stopDeviceScan()
-  }
+}
+
+const startBluetoothStack = () => {
+  bleManager.onStateChange((state) => {
+    if (state === 'PoweredOn') {
+      emitter(Creators.ready())
+      listenDevices()
+    } else {
+      emitter(Creators.notReady())
+    }
+  }, true)
+}
+
+const setBluetoothEventsEmitter = (emitter) => {
+  emitter = _emitter
 }
 
 class BLEHOC extends React.Component {
 
   componentDidMount() {
     const { device } = this.props
-    bleManager.monitorCharacteristicForDevice(device.get('id'), )
   }
 
   render() {
@@ -308,8 +334,8 @@ class BLEHOC extends React.Component {
 }
 
 export {
-  init,
-  listenDevices,
+  setBluetoothEventEmitter,
+  startBluetoothStack,
   getCharacterisitcValue,
   setCharacteristicValue,
   BLEHOC,

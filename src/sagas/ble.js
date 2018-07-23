@@ -2,31 +2,16 @@ import { fromJS } from 'immutable'
 import { call, take, takeEvery, put } from 'redux-saga/effects'
 import { eventChannel, END } from 'redux-saga'
 
-import { Creators, Types } from '../actions/ble';
+import { Creators, Types } from '../actions/ble'
 import { init, listenDevices, readCharacterisitcValue, setCharacteristicValue } from '../utils/ble'
 
-const devicesFoundEventChannel = () => 
+const bluetoothEventChannel = () => 
   eventChannel(emitter => 
-    listenDevices(
-      (device) => emitter(Creators.deviceDiscovered(fromJS(device))),
-      (d, s, c, v) => emitter(Creators.characteristicChanged(d, s, c, v)),
-      (deviceId, error) => emitter(Creators.error(deviceId, fromJS(error))),
-    )
+    setBluetoothEventEmitter(emitter)
   )
 
-const setCharacteristicValueSaga = function*(action) {
-  yield call(setCharacteristicValue, action.deviceId, action.serviceName, action.characteristicName, action.value)
-}
-
-const readCharacterisitcValueSaga = function(action) {
-  console.log('readCharacterisitcValue', action);
-}
-
-const bleSaga = function*() {
-  yield takeEvery(Types.SET_CHARACTERISTIC_VALUE, setCharacteristicValueSaga);
-  yield takeEvery(Types.READ_CHARACTERISTIC_VALUE, readCharacteristicValueSaga);
-  yield call(init)
-  const chan = yield call(devicesFoundEventChannel)
+const bluetoothEventChannelSaga = function*() {
+  const chan = yield call(bluetoothEventChannel)
 
   try {
     while (true) {
@@ -36,6 +21,22 @@ const bleSaga = function*() {
   } catch(e) {
     console.log(e)
   }
+}
+
+const setCharacteristicValueSaga = function*(action) {
+  yield call(setCharacteristicValue, action.deviceId, action.serviceName, action.characteristicName, action.value)
+}
+
+const getCharacteristicValueSaga = function*(action) {
+  console.log('getCharacterisitcValue', action)
+  yield call(getCharacteristicValue, action.deviceId, action.serviceName, action.characteristicName)
+}
+
+const bleSaga = function*() {
+  yield takeEvery(Types.SET_CHARACTERISTIC_VALUE, setCharacteristicValueSaga)
+  yield takeEvery(Types.GET_CHARACTERISTIC_VALUE, getCharacteristicValueSaga)
+  yield call(bluetoothEventChannelSaga)
+  yield call(startBluetoothStack)
 }
 
 export {
