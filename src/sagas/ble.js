@@ -3,7 +3,7 @@ import { call, fork, take, takeEvery, put } from 'redux-saga/effects'
 import { eventChannel, END } from 'redux-saga'
 
 import { Creators, Types } from '../actions/ble'
-import { init, listenDevices, readCharacterisitcValue, setCharacteristicValue, startBluetoothStack, setBluetoothEventsEmitter } from '../utils/ble'
+import { init, listenDevices, getCharacteristicValue, setCharacteristicValue, startBluetoothStack, setBluetoothEventsEmitter } from '../utils/ble'
 
 const bluetoothEventChannel = () => 
   eventChannel(emitter => 
@@ -28,7 +28,6 @@ const setCharacteristicValueSaga = function*(action) {
 }
 
 const getCharacteristicValueSaga = function*(action) {
-  console.log('getCharacterisitcValue', action)
   yield call(getCharacteristicValue, action.deviceId, action.serviceName, action.characteristicName)
 }
 

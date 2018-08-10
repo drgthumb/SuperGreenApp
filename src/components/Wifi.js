@@ -3,6 +3,7 @@ import { connect } from 'react-redux'
 import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
 import PropTypes from 'prop-types'
 import { Creators } from '../actions/ble'
+import { withBLECharacteristics } from '../utils/ble.js'
 import { nextSetupRootForDevice } from '../navigators/AppNavigator'
 
 import BigButton from './BigButton'
@@ -155,4 +156,4 @@ const mapStateToProps = (state, props) => ({
   device: state.getIn(['ble', 'devices', props.navigation.getParam('device').id]),
 })
 
-export default connect(mapStateToProps)(Wifi)
+export default connect(mapStateToProps)(withBLECharacteristics(['wifi_ssid', 'wifi_password', 'wifi_status'])(Wifi))

@@ -1,5 +1,8 @@
+import _ from 'lodash'
 import { fromJS } from 'immutable'
 import React from 'react'
+import { View, Text, ActivityIndicator } from 'react-native'
+import { connect } from 'react-redux'
 import { BleManager } from 'react-native-ble-plx'
 import { Buffer } from 'buffer'
 
@@ -212,7 +215,6 @@ const setCharacteristicValue = async (deviceId, serviceName, characteristicName,
     emitter(Creators.settingCharacteristicValue(deviceId, serviceName, characteristicName))
     if (typeof value == 'number') {
       const b = new Buffer(4);
-      value = Math.floor(value)
       b.writeIntLE(value, 0, 4);
       await bleManager.writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, b.toString('base64'))
     } else {
@@ -238,6 +240,7 @@ const getCharacteristicValue = async (deviceId, serviceName, characteristicName)
       characteristic.monitor((error, characteristic) => {
         if (error) {
           emitter(Creators.monitoringError(deviceId, serviceName, characteristicName, fromJS(error)))
+          return
         }
         emitter(Creators.characteristicValueChanged(deviceId, serviceName, characteristicName, characteristicTypeForUUID(characteristic.serviceUUID, characteristic.uuid)(characteristic.value)))
       })
@@ -275,6 +278,7 @@ const listenDevices = () => {
           id: device.id,
           name: device.name,
           connected: false,
+          initialLoad: false,
           services: {},
         }
         emitter(Creators.deviceDiscovered(fromJS(deviceObj)))
@@ -294,8 +298,10 @@ const listenDevices = () => {
         })
 
         deviceObj.services = await deviceServicesToObject(device)
+        deviceObj.initialLoad = true
         emitter(Creators.deviceDiscovered(fromJS(deviceObj)))
-        await setCharacteristicValue(deviceObj.id, 'config', 'time', Date.now() / 1000)
+        await getCharacteristicValue(deviceObj.id, 'config', 'state')
+        await setCharacteristicValue(deviceObj.id, 'config', 'time', parseInt(Date.now() / 1000))
       } catch (e) {
         console.log('listenDevices', e)
         emitter(Creators.deviceDiscoverError(device.id, fromJS(e)))
@@ -306,9 +312,7 @@ const listenDevices = () => {
 }
 
 const startBluetoothStack = async () => {
-  console.log('startBluetoothStack')
   bleManager.onStateChange((state) => {
-    console.log('bleManager.onStateChange')
     if (state === 'PoweredOn') {
       emitter(Creators.ready())
       listenDevices()
@@ -323,19 +327,41 @@ const setBluetoothEventsEmitter = (_emitter) => {
   return () => {}
 }
 
-class BLEHOC extends React.Component {
+const withBLECharacteristics = (characteristics) => (Component) => {
+  const mapStateToProps = (state, props) => _.reduce(characteristics, (acc, c) => {
+    acc[c] = state.getIn(['ble', 'devices', props.device.get('id'), 'services', 'config', 'characteristics', c])
+    console.log(acc)
+    return acc
+  }, {})
 
-  componentDidMount() {
-    const { device } = this.props
-  }
+  return connect(mapStateToProps)(class extends React.Component {
 
-  render() {
-    const { children } = this.props
-    return (
-      {...children}
-    )
-  }
+    componentDidMount() {
+      const { device, dispatch } = this.props
+      _.forEach(characteristics, (c) => {
+        dispatch(Creators.getCharacteristicValue(device.get('id'), 'config', c))
+      })
+    }
 
+    render() {
+      const { device } = this.props
+      const loading = !!_.find(characteristics, (c) => !this.props[c].get('loaded'));
+
+      console.log(loading)
+      if (loading) {
+        return (
+          <View>
+            <Text>loading characteristics</Text>
+            <ActivityIndicator size="large" />
+          </View>
+        )
+      }
+
+      return (
+        <Component {...this.props} />
+      )
+    }
+  })
 }
 
 export {
@@ -343,5 +369,5 @@ export {
   startBluetoothStack,
   getCharacteristicValue,
   setCharacteristicValue,
-  BLEHOC,
+  withBLECharacteristics,
 }

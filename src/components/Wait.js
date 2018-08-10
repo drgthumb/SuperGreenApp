@@ -10,12 +10,13 @@ class Wait extends React.Component {
 
   componentWillReceiveProps(newProps) {
     const { devices, navigation, } = newProps;
-    const { devices: newDevices, } = this.props;
+    const { devices: newDevices, dispatch } = this.props;
     if (devices.size != 0) {
       const device = devices.valueSeq().get(0)
-      if (device.getIn(['services', 'config', 'characteristics', 'state', 'loaded']) == false) {
+      if (!device.getIn(['services', 'config', 'characteristics', 'state', 'loaded'])) {
         return
       }
+
       if (device.getIn(['services', 'config', 'characteristics', 'state', 'value']) == 0) {
         navigation.navigate('Wifi', { device: device.toJS() })
       } else {
