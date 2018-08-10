@@ -18,7 +18,7 @@ function ble(state = initialState, action) {
       nextState = state.setIn(['devices', action.deviceId, 'services', action.serviceName, 'characteristics', action.characteristicName, 'setting'], true)
       break
     case Types.CHARACTERISTIC_VALUE_SET:
-      nextState = state.updateIn(['devices', action.deviceId, 'services', action.serviceName, 'characteristics', action.characteristicName], (v) => v.set('value', action.value).unset('setting'))
+      nextState = state.updateIn(['devices', action.deviceId, 'services', action.serviceName, 'characteristics', action.characteristicName], (v) => v.set('value', action.value).delete('setting'))
       break
     case Types.SET_CHARACTERISTIC_VALUE_ERROR:
       nextState = state.setIn(['devices', action.deviceId, 'services', action.serviceName, 'characteristics', action.characteristicName, 'set_value_error'], action.error)
@@ -30,7 +30,7 @@ function ble(state = initialState, action) {
       nextState = state.setIn(['devices', action.deviceId, 'services', action.serviceName, 'characteristics', action.characteristicName, 'getting'], true)
       break
     case Types.GOT_CHARACTERISTIC_VALUE:
-      nextState = state.updateIn(['devices', action.deviceId, 'services', action.serviceName, 'characteristics', action.characteristicName], (v) => v.set('value', action.value).unset('getting'))
+      nextState = state.updateIn(['devices', action.deviceId, 'services', action.serviceName, 'characteristics', action.characteristicName], (v) => v.set('value', action.value).set('loaded', true).delete('getting'))
       break
     case Types.GET_CHARACTERISTIC_VALUE_ERROR:
       nextState = state.setIn(['devices', action.deviceId, 'services', action.serviceName, 'characteristics', action.characteristicName, 'get_value_error'], action.error)

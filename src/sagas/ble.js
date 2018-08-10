@@ -1,13 +1,13 @@
 import { fromJS } from 'immutable'
-import { call, take, takeEvery, put } from 'redux-saga/effects'
+import { call, fork, take, takeEvery, put } from 'redux-saga/effects'
 import { eventChannel, END } from 'redux-saga'
 
 import { Creators, Types } from '../actions/ble'
-import { init, listenDevices, readCharacterisitcValue, setCharacteristicValue } from '../utils/ble'
+import { init, listenDevices, readCharacterisitcValue, setCharacteristicValue, startBluetoothStack, setBluetoothEventsEmitter } from '../utils/ble'
 
 const bluetoothEventChannel = () => 
   eventChannel(emitter => 
-    setBluetoothEventEmitter(emitter)
+    setBluetoothEventsEmitter(emitter)
   )
 
 const bluetoothEventChannelSaga = function*() {
@@ -35,7 +35,7 @@ const getCharacteristicValueSaga = function*(action) {
 const bleSaga = function*() {
   yield takeEvery(Types.SET_CHARACTERISTIC_VALUE, setCharacteristicValueSaga)
   yield takeEvery(Types.GET_CHARACTERISTIC_VALUE, getCharacteristicValueSaga)
-  yield call(bluetoothEventChannelSaga)
+  yield fork(bluetoothEventChannelSaga)
   yield call(startBluetoothStack)
 }
 

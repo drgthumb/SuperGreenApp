@@ -6,19 +6,19 @@ const { Types, Creators } = createActions({
 
   setCharacteristicValue: ['deviceId', 'serviceName', 'characteristicName', 'value'],
   settingCharacteristicValue: ['deviceId', 'serviceName', 'characteristicName'],
-  characteristicValueSet: ['deviceId', 'serviceName', 'characteristicName'],
+  characteristicValueSet: ['deviceId', 'serviceName', 'characteristicName', 'value'],
   setCharacteristicValueError: ['deviceId', 'serviceName', 'characteristicName', 'error'],
 
   getCharacteristicValue: ['deviceId', 'serviceName', 'characteristicName'],
   gettingCharacteristicValue: ['deviceId', 'serviceName', 'characteristicName'],
-  gotCharacteristicValue: ['deviceId', 'serviceName', 'characteristicName'],
+  gotCharacteristicValue: ['deviceId', 'serviceName', 'characteristicName', 'value'],
   getCharacteristicValueError: ['deviceId', 'serviceName', 'characteristicName', 'error'],
 
   characteristicValueChanged: ['deviceId', 'serviceName', 'characteristicName', 'value'],
   monitoringError: ['deviceId', 'serviceName', 'characteristicName', 'error'],
 
   deviceDiscovered: ['device'],
-  deviceDiscoverError: ['error'],
+  deviceDiscoverError: ['deviceId', 'error'],
   deviceConnected: ['deviceId'],
   deviceConnecting: ['deviceId'],
   deviceConnectionError: ['deviceId', 'error'],

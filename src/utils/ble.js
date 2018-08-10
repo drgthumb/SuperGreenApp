@@ -8,7 +8,7 @@ import { Creators } from '../actions/ble'
 const NAME_MATCH = '🤖🍁'
 
 const bleManager = new BleManager()
-const emitter // saga channel emitter
+let emitter // saga channel emitter
 
 const intValue = (v) => {
   try {
@@ -182,17 +182,16 @@ const deviceServicesToObject = async (device) => {
     for (let i in services) {
       let service = services[i]
       let characteristics = await service.characteristics()
-      res.services[serviceNameForUUID(service.uuid)] = {
+      res[serviceNameForUUID(service.uuid)] = {
         uuid: service.uuid,
         name: serviceNameForUUID(service.uuid),
         characteristics: {},
       }
       for (let j in characteristics) {
         if (!characteristics[j].isReadable) continue
-        res.services[serviceNameForUUID(service.uuid)].characteristics[characteristicNameForUUID(service.uuid, characteristics[j].uuid)] = {
+        res[serviceNameForUUID(service.uuid)].characteristics[characteristicNameForUUID(service.uuid, characteristics[j].uuid)] = {
           uuid: characteristics[j].uuid,
           loaded: false,
-          monitored: false,
           name: characteristicNameForUUID(service.uuid, characteristics[j].uuid),
           value: characteristicInitialValueForUUID(service.uuid, characteristics[j].uuid),
         }
@@ -213,19 +212,20 @@ const setCharacteristicValue = async (deviceId, serviceName, characteristicName,
     emitter(Creators.settingCharacteristicValue(deviceId, serviceName, characteristicName))
     if (typeof value == 'number') {
       const b = new Buffer(4);
+      value = Math.floor(value)
       b.writeIntLE(value, 0, 4);
       await bleManager.writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, b.toString('base64'))
     } else {
       await bleManager.writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, new Buffer(value).toString('base64'))
     }
-    emitter(Creators.characteristicValueSet(deviceId, serviceName, characteristicName))
+    emitter(Creators.characteristicValueSet(deviceId, serviceName, characteristicName, value))
   } catch(e) {
     emitter(Creators.setCharacteristicValueError(deviceId, serviceName, characteristicName, fromJS(e)))
     console.log('setCharacteristicValue', e)
   }
 }
 
-const getCharacterisitcValue = async (deviceId, serviceName, characteristicName) => {
+const getCharacteristicValue = async (deviceId, serviceName, characteristicName) => {
   try {
     const serviceUUID = UUIDForServiceName(serviceName),
       characteristicUUID = UUIDForCharacteristicName(serviceUUID, characteristicName)
@@ -233,11 +233,13 @@ const getCharacterisitcValue = async (deviceId, serviceName, characteristicName)
     emitter(Creators.gettingCharacteristicValue(deviceId, serviceName, characteristicName))
     const characteristic = await bleManager.readCharacteristicForDevice(deviceId, serviceUUID, characteristicUUID)
     if (characteristic.isNotifiable) {
+      const serviceName =  serviceNameForUUID(characteristic.serviceUUID),
+            characteristicName = characteristicNameForUUID(characteristic.serviceUUID, characteristic.uuid)
       characteristic.monitor((error, characteristic) => {
         if (error) {
           emitter(Creators.monitoringError(deviceId, serviceName, characteristicName, fromJS(error)))
         }
-        emitter(Creators.characteristicChanged(deviceId, characteristic.serviceUUID, characteristic.uuid, characteristicTypeForUUID(characteristic.serviceUUID, characteristic.uuid)(characteristic.value)))
+        emitter(Creators.characteristicValueChanged(deviceId, serviceName, characteristicName, characteristicTypeForUUID(characteristic.serviceUUID, characteristic.uuid)(characteristic.value)))
       })
     }
     const value = characteristicTypeForUUID(characteristic.serviceUUID, characteristic.uuid)(characteristic.value)
@@ -292,8 +294,8 @@ const listenDevices = () => {
         })
 
         deviceObj.services = await deviceServicesToObject(device)
-        onDeviceDiscovered(deviceObj)
-        await setCharacteristicValue(device.id, 'config', 'time', Date.now() / 1000)
+        emitter(Creators.deviceDiscovered(fromJS(deviceObj)))
+        await setCharacteristicValue(deviceObj.id, 'config', 'time', Date.now() / 1000)
       } catch (e) {
         console.log('listenDevices', e)
         emitter(Creators.deviceDiscoverError(device.id, fromJS(e)))
@@ -303,8 +305,10 @@ const listenDevices = () => {
   })
 }
 
-const startBluetoothStack = () => {
+const startBluetoothStack = async () => {
+  console.log('startBluetoothStack')
   bleManager.onStateChange((state) => {
+    console.log('bleManager.onStateChange')
     if (state === 'PoweredOn') {
       emitter(Creators.ready())
       listenDevices()
@@ -314,8 +318,9 @@ const startBluetoothStack = () => {
   }, true)
 }
 
-const setBluetoothEventsEmitter = (emitter) => {
+const setBluetoothEventsEmitter = (_emitter) => {
   emitter = _emitter
+  return () => {}
 }
 
 class BLEHOC extends React.Component {
@@ -334,9 +339,9 @@ class BLEHOC extends React.Component {
 }
 
 export {
-  setBluetoothEventEmitter,
+  setBluetoothEventsEmitter,
   startBluetoothStack,
-  getCharacterisitcValue,
+  getCharacteristicValue,
   setCharacteristicValue,
   BLEHOC,
 }
