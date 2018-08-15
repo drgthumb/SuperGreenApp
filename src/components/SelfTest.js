@@ -1,7 +1,9 @@
+import _ from 'lodash'
 import React from 'react'
 import { connect } from 'react-redux'
 import { View, Text, TextInput, Slider, Image, Button, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
 import PropTypes from 'prop-types'
+import { withBLECharacteristics } from '../utils/ble.js'
 import { Creators } from '../actions/ble'
 
 import textStyles from './TextStyles'
@@ -176,4 +178,4 @@ const mapStateToProps = (state, props) => ({
   device: state.getIn(['ble', 'devices', props.navigation.getParam('device').id]),
 })
 
-export default connect(mapStateToProps)(SelfTest)
+export default connect(mapStateToProps)(withBLECharacteristics(['led_0_0_pwr', 'led_0_1_pwr', 'led_0_2_pwr', 'led_1_0_pwr', 'led_1_1_pwr', 'led_1_2_pwr', 'led_0_0_duty', 'led_0_1_duty', 'led_0_2_duty', 'led_1_0_duty', 'led_1_1_duty', 'led_1_2_duty'])(SelfTest))

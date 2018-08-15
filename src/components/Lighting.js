@@ -2,6 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { View, ScrollView, Text, Image, TextInput, Button, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
 import PropTypes from 'prop-types'
+import { withBLECharacteristics } from '../utils/ble.js'
 import { Creators } from '../actions/ble'
 
 import textStyles from './TextStyles'
@@ -111,4 +112,4 @@ const mapStateToProps = (state, props) => ({
   device: state.getIn(['ble', 'devices', props.navigation.getParam('device').id]),
 })
 
-export default connect(mapStateToProps)(Lighting)
+export default connect(mapStateToProps)(withBLECharacteristics(['timerType'])(Lighting))

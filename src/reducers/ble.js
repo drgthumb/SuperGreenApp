@@ -12,6 +12,13 @@ function ble(state = initialState, action) {
   let nextState
   switch (action.type) {
 
+    case Types.READY:
+      nextState = state.set('ready', true)
+      break
+    case Types.NOT_READY:
+      nextState = state.set('ready', false)
+      break
+
     // Setting characteristic value
 
     case Types.SETTING_CHARACTERISTIC_VALUE:

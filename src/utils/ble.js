@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { fromJS } from 'immutable'
 import React from 'react'
-import { View, Text, ActivityIndicator } from 'react-native'
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native'
 import { connect } from 'react-redux'
 import { BleManager } from 'react-native-ble-plx'
 import { Buffer } from 'buffer'
@@ -277,7 +277,7 @@ const listenDevices = () => {
         const deviceObj = {
           id: device.id,
           name: device.name,
-          connected: false,
+          connected: true,
           initialLoad: false,
           services: {},
         }
@@ -330,7 +330,6 @@ const setBluetoothEventsEmitter = (_emitter) => {
 const withBLECharacteristics = (characteristics) => (Component) => {
   const mapStateToProps = (state, props) => _.reduce(characteristics, (acc, c) => {
     acc[c] = state.getIn(['ble', 'devices', props.device.get('id'), 'services', 'config', 'characteristics', c])
-    console.log(acc)
     return acc
   }, {})
 
@@ -347,22 +346,37 @@ const withBLECharacteristics = (characteristics) => (Component) => {
       const { device } = this.props
       const loading = !!_.find(characteristics, (c) => !this.props[c].get('loaded'));
 
-      console.log(loading)
-      if (loading) {
-        return (
-          <View>
-            <Text>loading characteristics</Text>
-            <ActivityIndicator size="large" />
-          </View>
-        )
-      }
-
       return (
-        <Component {...this.props} />
+        <View style={styles.container}>
+          <Component {...this.props} />
+          { loading && (
+            <View style={styles.overlay}>
+              <Text style={styles.wait}>Waiting bluetooth..</Text>
+              <ActivityIndicator size="large" />
+            </View>
+          )}
+        </View>
       )
     }
   })
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  overlay: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    top: 0, left: 0,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  wait: {
+    margin: 30,
+  },
+})
 
 export {
   setBluetoothEventsEmitter,

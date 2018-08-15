@@ -3,6 +3,7 @@ import React from 'react'
 import { connect } from 'react-redux';
 import { View, ScrollView, Image, Slider, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import PropTypes from 'prop-types'
+import { withBLECharacteristics } from '../utils/ble.js'
 import { Creators } from '../actions/ble'
 
 import logo from './assets/images/logo.png'
@@ -18,23 +19,9 @@ import textStyles from './TextStyles'
 
 import Separator from './Separator'
 
-class Device extends React.Component {
+class ClassicTimer extends React.Component {
 
-  static navigationOptions = {
-    header: null,
-  };
-
-  state = {nav: 'status'}
-
-  renderManualTimer() {
-    return (
-      <View style={layoutStyles.timerType}>
-        <Text style={textStyles.bigStatus}>MANUAL</Text>
-      </View>
-    )
-  }
-
-  renderClassicTimer() {
+  render() {
     const { device } = this.props
     const onHour = device.getIn(['services', 'config', 'characteristics', 'onHour', 'value'])
     const onMin = device.getIn(['services', 'config', 'characteristics', 'onMin', 'value'])
@@ -64,6 +51,31 @@ class Device extends React.Component {
           </Text>
         </View>
       </View>
+    )
+  }
+}
+
+ClassicTimer = withBLECharacteristics(['onHour', 'onMin', 'offHour', 'offMin'])(ClassicTimer)
+
+class Device extends React.Component {
+
+  static navigationOptions = {
+    header: null,
+  };
+
+  state = {nav: 'status'}
+
+  renderManualTimer() {
+    return (
+      <View style={layoutStyles.timerType}>
+        <Text style={textStyles.bigStatus}>MANUAL</Text>
+      </View>
+    )
+  }
+
+  renderClassicTimer() {
+    return (
+      <ClassicTimer {...this.props} />
     )
   }
 
@@ -233,4 +245,4 @@ const mapStateToProps = (state, props) => ({
   device: state.getIn(['ble', 'devices', props.navigation.getParam('device').id]),
 })
 
-export default connect(mapStateToProps)(Device)
+export default connect(mapStateToProps)(withBLECharacteristics(['timerType'])(Device))
