@@ -55,7 +55,7 @@ function ble(state = initialState, action) {
     // Discovering stuffs
 
     case Types.DEVICE_DISCOVERED:
-      nextState = state.setIn(['devices', action.device.get('id')], action.device)
+      nextState = state.updateIn(['devices', action.device.get('id')], v => !v ? action.device : v.mergeDeepWith((o, n, k) => n || o, action.device))
       break
     case Types.DEVICE_DISCOVER_ERROR:
       nextState = state.set('discover_error', action.error)

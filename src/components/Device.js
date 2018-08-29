@@ -57,13 +57,28 @@ class ClassicTimer extends React.Component {
 
 ClassicTimer = withBLECharacteristics(['onHour', 'onMin', 'offHour', 'offMin'])(ClassicTimer)
 
-class Device extends React.Component {
+class LedDim extends React.Component {
 
-  static navigationOptions = {
-    header: null,
-  };
+  render() {
+    const { onDim } = this.props
+    return (
+      <View style={layoutStyles.dimmer}>
+        <Text style={[textStyles.text, textStyles.medium, layoutStyles.dimmerText]}>
+          Dim lights by pressing this button
+          before opening doors !
+        </Text>
+        <TouchableOpacity style={layoutStyles.dimmerButton} onPress={onDim}>
+          <Image style={layoutStyles.sunglass} resizeMode='contain' source={sunglass} />
+        </TouchableOpacity>
+      </View>
+    )
+  }
 
-  state = {nav: 'status'}
+}
+
+LedDim = withBLECharacteristics(['ledDim'])(LedDim)
+
+class Timer extends React.Component {
 
   renderManualTimer() {
     return (
@@ -90,6 +105,30 @@ class Device extends React.Component {
   render() {
     const { device } = this.props
     const timerType = device.getIn(['services', 'config', 'characteristics', `timerType`, 'value'])
+
+    return (
+      <View style={layoutStyles.timer}>
+        <Text style={[textStyles.text, textStyles.title]}>Timer settings</Text>
+        { timerType == 0 && this.renderManualTimer() }
+        { timerType == 1 && this.renderClassicTimer() }
+        { timerType == 2 && this.renderSeasonTimer() }
+      </View>
+    )
+  }
+
+}
+
+Timer = withBLECharacteristics(['timerType'])(Timer)
+
+class Device extends React.Component {
+
+  static navigationOptions = {
+    header: null,
+  };
+
+  state = {nav: 'status'}
+
+  render() {
     return (
       <View style={layoutStyles.container}>
         <Image style={layoutStyles.logo} source={logo} />
@@ -101,22 +140,9 @@ class Device extends React.Component {
         </View>
         <ScrollView style={layoutStyles.body} contentContainerStyle={layoutStyles.scrollContent}>
           <Separator />
-          <View style={layoutStyles.dimmer}>
-            <Text style={[textStyles.text, textStyles.medium, layoutStyles.dimmerText]}>
-              Dim lights by pressing this button
-              before opening doors !
-            </Text>
-            <TouchableOpacity style={layoutStyles.dimmerButton}>
-              <Image style={layoutStyles.sunglass} resizeMode='contain' source={sunglass} />
-            </TouchableOpacity>
-          </View>
+          <LedDim {...this.props} onDim={this._handleDim} />
           <Separator />
-          <View style={layoutStyles.timer}>
-            <Text style={[textStyles.text, textStyles.title]}>Timer settings</Text>
-            { timerType == 0 && this.renderManualTimer() }
-            { timerType == 1 && this.renderClassicTimer() }
-            { timerType == 2 && this.renderSeasonTimer() }
-          </View>
+          <Timer {...this.props} />
           <Separator />
           <View style={layoutStyles.slider}>
             <Text>Stretch</Text>
@@ -158,6 +184,12 @@ class Device extends React.Component {
 
   _handleGrowthTypeChanged = () => {
     console.log('_handleGrowthTypeChanged')
+  }
+
+  _handleDim = () => {
+    console.log('_handleDim')
+    const { device, dispatch } = this.props
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `ledDim`, parseInt(Date.now() / 1000)))
   }
 
 }

@@ -21,7 +21,24 @@ const intValue = (v) => {
   }
 }
 
-const stringValue = (v) => Buffer.from(v, 'base64').toString()
+// not even sry
+const stringValue = (v) => v == 'AA==' ? '' : Buffer.from(v, 'base64').toString() || ''
+
+const ledInfoValue = (v) => {
+  v = stringValue(v)
+  const data = v.split('|')
+  data.shift()
+  const res = _.map(data, (d) => {
+    const l = d.split(';')
+    return _.reduce(l, (acc, l) => {
+      l = l.split(':')
+      acc[l[0]] = parseInt(l[1])
+      return acc
+    }, {})
+  })
+
+  return fromJS(res)
+}
 
 const SERVICE_MAPPING = {
   '000000ff-0000-1000-8000-00805f9b34fb': {
@@ -45,53 +62,34 @@ const SERVICE_MAPPING = {
       },
 
       /* LED */
-     '4750daf8-0f06-ad2b-178e-ec58c7f30421': {
-        name: 'led_0_0_pwr',
+      '6df781fe-6dce-5234-1870-6a972114c596': {
+        name: 'ledInfo',
+        type: ledInfoValue,
+        initialValue: [],
+      },
+      // Hardcode X leds (driver doesn't go further than 6 leds for now anyway)
+      '4291ec1b-65df-19c4-c5f1-e4259071fc00': {
+        name: 'led_0_duty',
         type: intValue,
       },
-     '3c14371f-b1b6-6d66-cc02-b01396f6f84f': {
-        name: 'led_0_1_pwr',
+      '4291ec1b-65df-19c4-c5f1-e4259071fc01': {
+        name: 'led_1_duty',
         type: intValue,
       },
-     'ca2a9037-7626-6751-60fb-c3922021cc42': {
-        name: 'led_0_2_pwr',
+      '4291ec1b-65df-19c4-c5f1-e4259071fc02': {
+        name: 'led_2_duty',
         type: intValue,
       },
-     '0365b1c9-4079-4caf-51f4-2730ca055bb5': {
-        name: 'led_1_0_pwr',
+      '4291ec1b-65df-19c4-c5f1-e4259071fc03': {
+        name: 'led_3_duty',
         type: intValue,
       },
-     'ab2abc56-1a48-84d1-1b20-6c0035d7c9eb': {
-        name: 'led_1_1_pwr',
+      '4291ec1b-65df-19c4-c5f1-e4259071fc04': {
+        name: 'led_4_duty',
         type: intValue,
       },
-     '05a5cc9e-a67b-bc62-2577-6ceb69cbc567': {
-        name: 'led_1_2_pwr',
-        type: intValue,
-      },
-
-     '4291ec1b-65df-19c4-c5f1-e4259071fc5d': {
-        name: 'led_0_0_duty',
-        type: intValue,
-      },
-     '18a17b54-716d-3eb8-af12-b447d7c81cd8': {
-        name: 'led_0_1_duty',
-        type: intValue,
-      },
-     '2914d978-e7d9-6f5a-36e8-1a11011ab737': {
-        name: 'led_0_2_duty',
-        type: intValue,
-      },
-     '4cba86fc-e385-3cd2-2de5-5c7ef8a6ed40': {
-        name: 'led_1_0_duty',
-        type: intValue,
-      },
-     '5b11c5f4-67b6-c712-fc1c-4b13fa9fd3cb': {
-        name: 'led_1_1_duty',
-        type: intValue,
-      },
-     'bd87b60e-30b7-d99c-56e2-cd377da4494e': {
-        name: 'led_1_2_duty',
+      '4291ec1b-65df-19c4-c5f1-e4259071fc05': {
+        name: 'led_5_duty',
         type: intValue,
       },
 
@@ -152,16 +150,24 @@ const SERVICE_MAPPING = {
 
       /* WIFI */
       '372fda1c-6d67-cbda-f083-ae31b50e06ee': {
-        name: 'wifi_status',
+        name: 'wifiStatus',
         type: intValue,
       },
       '6ca36981-9c55-74a5-5415-e16bc1c3fe17': {
-        name: 'wifi_ssid',
+        name: 'wifiSsid',
         type: stringValue,
+        initialValue: '',
       },
       'f7e40b10-6cfe-a6f1-fea0-cc6e82535db9': {
-        name: 'wifi_password',
+        name: 'wifiPassword',
         type: stringValue,
+        initialValue: '',
+      },
+
+      /* MIXER */
+      'a66375f6-7677-ba29-46b7-0fde55b0db61': {
+        name: 'ledDim',
+        type: intValue,
       },
     },
   },
@@ -246,6 +252,7 @@ const getCharacteristicValue = async (deviceId, serviceName, characteristicName)
       })
     }
     const value = characteristicTypeForUUID(characteristic.serviceUUID, characteristic.uuid)(characteristic.value)
+    //console.log(`${characteristicName} ${characteristic.value} ${value} ${value.length}`)
     emitter(Creators.gotCharacteristicValue(deviceId, serviceName, characteristicName, value))
     return value
   } catch(e) {
@@ -279,6 +286,8 @@ const listenDevices = () => {
           name: device.name,
           connected: true,
           initialLoad: false,
+          get_value_error: null,
+          monitoring_error: null,
           services: {},
         }
         emitter(Creators.deviceDiscovered(fromJS(deviceObj)))
@@ -312,11 +321,18 @@ const listenDevices = () => {
 }
 
 const startBluetoothStack = async () => {
+  let scanInterval;
   bleManager.onStateChange((state) => {
     if (state === 'PoweredOn') {
       emitter(Creators.ready())
-      listenDevices()
+      if (!scanInterval) {
+        scanInterval = setInterval(listenDevices, 10000)
+      }
     } else {
+      if (scanInterval) {
+        clearInterval(scanInterval)
+        scanInterval = null
+      }
       emitter(Creators.notReady())
     }
   }, true)
@@ -336,10 +352,7 @@ const withBLECharacteristics = (characteristics) => (Component) => {
   return connect(mapStateToProps)(class extends React.Component {
 
     componentDidMount() {
-      const { device, dispatch } = this.props
-      _.forEach(characteristics, (c) => {
-        dispatch(Creators.getCharacteristicValue(device.get('id'), 'config', c))
-      })
+      this._loadCharacteristics(this.props)
     }
 
     render() {
@@ -348,7 +361,7 @@ const withBLECharacteristics = (characteristics) => (Component) => {
 
       return (
         <View style={styles.container}>
-          <Component {...this.props} />
+          <Component bleLoading={loading} {...this.props} />
           { loading && (
             <View style={styles.overlay}>
               <Text style={styles.wait}>Waiting bluetooth..</Text>
@@ -358,7 +371,20 @@ const withBLECharacteristics = (characteristics) => (Component) => {
         </View>
       )
     }
+
+    _loadCharacteristics(props) {
+      const { device, dispatch } = props
+      if (!device.get('connected')) return
+      _.forEach(characteristics, (c) => {
+        if (!device.getIn(['services', 'config', 'characteristics', c, 'loaded']) &&
+            !device.getIn(['services', 'config', 'characteristics', c, 'getting'])) {
+          dispatch(Creators.getCharacteristicValue(device.get('id'), 'config', c))
+        }
+      })
+    }
+
   })
+
 }
 
 const styles = StyleSheet.create({

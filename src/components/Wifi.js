@@ -45,10 +45,10 @@ class Wifi extends React.Component {
   componentWillReceiveProps(newProps) {
     const { device, navigation } = newProps
     const { device: odevice } = this.props
-    const state = device.getIn(['services', 'config', 'characteristics', 'wifi_status', 'value'])
-    const ostate = odevice.getIn(['services', 'config', 'characteristics', 'wifi_status', 'value'])
-    const dssid = device.getIn(['services', 'config', 'characteristics', 'wifi_ssid', 'value'])
-    const odssid = odevice.getIn(['services', 'config', 'characteristics', 'wifi_ssid', 'value'])
+    const state = device.getIn(['services', 'config', 'characteristics', 'wifiStatus', 'value'])
+    const ostate = odevice.getIn(['services', 'config', 'characteristics', 'wifiStatus', 'value'])
+    const dssid = device.getIn(['services', 'config', 'characteristics', 'wifiSsid', 'value'])
+    const odssid = odevice.getIn(['services', 'config', 'characteristics', 'wifiSsid', 'value'])
 
     if (dssid !== odssid) {
       this.setState({ ssid: dssid })
@@ -56,7 +56,6 @@ class Wifi extends React.Component {
 
     if (state !== ostate) {
       if (state == 3) {
-        console.log('CONNECTED');
         navigation.navigate('SelfTest', { device: device.toJS() })
       }
     }
@@ -64,7 +63,7 @@ class Wifi extends React.Component {
 
   componentDidMount() {
     const { device, navigation } = this.props
-    const state = device.getIn(['services', 'config', 'characteristics', 'wifi_status', 'value'])
+    const state = device.getIn(['services', 'config', 'characteristics', 'wifiStatus', 'value'])
     if (state == 3) {
       navigation.navigate('SelfTest', { device: device.toJS() })
     }
@@ -92,7 +91,7 @@ class Wifi extends React.Component {
 
   renderLoading() {
     const { device } = this.props
-    const state = device.getIn(['services', 'config', 'characteristics', 'wifi_status', 'value'])
+    const state = device.getIn(['services', 'config', 'characteristics', 'wifiStatus', 'value'])
 
     if (state == 4) {
       return (
@@ -124,8 +123,8 @@ class Wifi extends React.Component {
     const { ssid, password } = this.state
 
     this.setState({submitted: true})
-    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'wifi_ssid', ssid))
-    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'wifi_password', password))
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'wifiSsid', ssid))
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'wifiPassword', password))
   }
 
 }
@@ -155,4 +154,4 @@ const mapStateToProps = (state, props) => ({
   device: state.getIn(['ble', 'devices', props.navigation.getParam('device').id]),
 })
 
-export default connect(mapStateToProps)(withBLECharacteristics(['wifi_ssid', 'wifi_password', 'wifi_status'])(Wifi))
+export default connect(mapStateToProps)(withBLECharacteristics(['wifiSsid', 'wifiPassword', 'wifiStatus'])(Wifi))

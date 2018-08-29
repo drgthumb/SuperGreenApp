@@ -21,11 +21,10 @@ import minimumTrack from './assets/images/minimum-track.png'
 import maximumTrack from './assets/images/maximum-track.png'
 import slider from './assets/images/slider.png'
 
-const LED_PLACES = ['Bottom, side A', 'Middle, side A', 'Top, side A', 'Bottom, side B', 'Middle, side B', 'Top, side B'];
-const LED_MIN_DUTY = 550
-const LED_MAX_DUTY = 8191
+const LED_MIN_DUTY = 0
+const LED_MAX_DUTY = 100
 
-class SelfTest extends React.Component {
+class LedTester extends React.Component {
 
   state = {led: 0}
 
@@ -33,8 +32,7 @@ class SelfTest extends React.Component {
     const { led } = this.state
     const { device } = this.props
 
-    const power = device.getIn(['services', 'config', 'characteristics', this.power(), 'value'])
-    const duty = device.getIn(['services', 'config', 'characteristics', this.duty(), 'value'])
+    const duty = this.props[this.duty()].get('value')
 
     return (
       <SetupLayout title='Assembly test'>
@@ -47,7 +45,6 @@ class SelfTest extends React.Component {
               <Text style={[textStyles.center, textStyles.text]}>
                 <Text>Testing led</Text>{'\n'}
                 <Text style={textStyles.bigStatus}>{led+1}</Text>{'\n'}
-                <Text>({LED_PLACES[led]})</Text>
               </Text>
             </View>
             <TouchableOpacity onPress={this._handleLedChanged(led+1)} style={layoutStyles.paging} disabled={led == 5} style={{opacity: led == 5 ? 0.4 : 1}}>
@@ -56,12 +53,6 @@ class SelfTest extends React.Component {
           </View>
           <Separator />
           <View style={layoutStyles.switches}>
-            <View style={layoutStyles.radio}>
-              <Text style={textStyles.text}>Power switch:{' '}</Text>
-              <TouchableOpacity onPress={this._handlePowerChanged(power ? 0 : 100)} >
-                <Image source={power ? switchOn : switchOff} />
-              </TouchableOpacity>
-            </View>
             <View style={layoutStyles.brightness}>
               <Text style={textStyles.text}>Brightness</Text>
               <View style={layoutStyles.slider}>
@@ -87,17 +78,13 @@ class SelfTest extends React.Component {
   }
 
   _handleLedChanged = (value) => () => {
-    this.setState({led: Math.min(5, Math.max(value, 0))});
-  }
-
-  _handlePowerChanged = (value) => () => {
-    const { device, dispatch } = this.props
-    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', this.power(), value))
+    const { ledInfo } = this.props
+    this.setState({led: Math.min(ledInfo.get('value').size, Math.max(value, 0))});
   }
 
   _handleBrightnessChanged = (value) => {
     const { device, dispatch } = this.props
-    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', this.duty(), value))
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', this.duty(), Math.floor(value)))
   }
 
   _handleNext = () => {
@@ -109,18 +96,28 @@ class SelfTest extends React.Component {
 
   duty() {
     const { led } = this.state
-    const side = Math.floor(led / 3)
-    const num = led % 3
-    return `led_${side}_${num}_duty`
+    return `led_${led}_duty`
   }
 
-  power() {
-    const { led } = this.state
-    const side = Math.floor(led / 3)
-    const num = led % 3
-    return `led_${side}_${num}_pwr`
+}
+
+class SelfTest extends React.Component {
+
+  componentWillReceiveProps(newProps) {
+    const { ledInfo: oledInfo } = this.props
+    const { ledInfo } = newProps
+
+    if (oledInfo && ledInfo && oledInfo.get('value') != ledInfo.get('value') && ledInfo.get('value').size) {
+      this.LedTester = withBLECharacteristics(_.times(ledInfo.get('value').size, (i) => `led_${i}_duty`))(LedTester)
+    }
   }
 
+  render() {
+    const LedTesterComp = this.LedTester || View
+    return (
+      <LedTesterComp {...this.props} />
+    )
+  }
 }
 
 const layoutStyles = StyleSheet.create({
@@ -149,11 +146,6 @@ const layoutStyles = StyleSheet.create({
     margin: 25,
     marginTop: 0,
   },
-  radio: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   brightness: {
     alignItems: 'center',
   },
@@ -178,4 +170,4 @@ const mapStateToProps = (state, props) => ({
   device: state.getIn(['ble', 'devices', props.navigation.getParam('device').id]),
 })
 
-export default connect(mapStateToProps)(withBLECharacteristics(['led_0_0_pwr', 'led_0_1_pwr', 'led_0_2_pwr', 'led_1_0_pwr', 'led_1_1_pwr', 'led_1_2_pwr', 'led_0_0_duty', 'led_0_1_duty', 'led_0_2_duty', 'led_1_0_duty', 'led_1_1_duty', 'led_1_2_duty'])(SelfTest))
+export default connect(mapStateToProps)(withBLECharacteristics(['ledInfo'])(SelfTest))

@@ -132,6 +132,7 @@ class Classic extends React.Component {
   }
 
   _handleParamChanged = (param) => (value) => {
+    console.log(value)
     const { device, dispatch } = this.props
     const params = value.split('h')
     console.log(params, parseInt(params[0]), parseInt(params[1]))

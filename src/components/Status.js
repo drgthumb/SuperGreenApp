@@ -14,7 +14,7 @@ class Status extends React.Component {
         <Text>Status</Text>
         <Text>Timer type {device.getIn(['services', 'config', 'characteristics', 'timerType', 'value'])}</Text>
         <Text>Timer output {device.getIn(['services', 'config', 'characteristics', 'timerOutput', 'value'])}</Text>
-        <Text>Wifi status {device.getIn(['services', 'config', 'characteristics', 'wifi_status', 'value'])}</Text>
+        <Text>Wifi status {device.getIn(['services', 'config', 'characteristics', 'wifiStatus', 'value'])}</Text>
       </View>
     );
   }
