@@ -132,10 +132,8 @@ class Classic extends React.Component {
   }
 
   _handleParamChanged = (param) => (value) => {
-    console.log(value)
     const { device, dispatch } = this.props
     const params = value.split('h')
-    console.log(params, parseInt(params[0]), parseInt(params[1]))
     dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `${param}Hour`, parseInt(params[0])))
     dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `${param}Min`, parseInt(params[1])))
     this.setState({editParam: null})
