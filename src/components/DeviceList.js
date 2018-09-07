@@ -30,7 +30,11 @@ class DeviceList extends React.Component {
 
   _handleDeviceSelected = (device) => {
     const { navigation } = this.props
-    navigation.navigate('Device', { device })
+    if (device.get('state') == 0) {
+      navigation.navigate('Wifi', { device })
+    } else {
+      navigation.navigate('Device', { device })
+    }
   }
 }
 

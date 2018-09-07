@@ -30,7 +30,7 @@ class LedTester extends React.Component {
 
   render() {
     const { led } = this.state
-    const { device } = this.props
+    const { device, ledInfo } = this.props
 
     const duty = this.props[this.duty()].get('value')
 
@@ -47,7 +47,7 @@ class LedTester extends React.Component {
                 <Text style={textStyles.bigStatus}>{led+1}</Text>{'\n'}
               </Text>
             </View>
-            <TouchableOpacity onPress={this._handleLedChanged(led+1)} style={layoutStyles.paging} disabled={led == 5} style={{opacity: led == 5 ? 0.4 : 1}}>
+            <TouchableOpacity onPress={this._handleLedChanged(led+1)} style={layoutStyles.paging} disabled={led == ledInfo.get('value').size - 1} style={{opacity: (led == ledInfo.get('value').size - 1) ? 0.4 : 1}}>
               <Image source={next} />
             </TouchableOpacity>
           </View>
@@ -79,7 +79,7 @@ class LedTester extends React.Component {
 
   _handleLedChanged = (value) => () => {
     const { ledInfo } = this.props
-    this.setState({led: Math.min(ledInfo.get('value').size, Math.max(value, 0))});
+    this.setState({led: Math.min(ledInfo.get('value').size - 1, Math.max(value, 0))});
   }
 
   _handleBrightnessChanged = (value) => {

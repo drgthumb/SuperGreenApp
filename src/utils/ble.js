@@ -121,7 +121,6 @@ const SERVICE_MAPPING = {
         type: intValue,
       },
 
-
       /* SEASON */
       '3867a37c-85a9-338c-40ac-96d4ee586841': {
         name: 'simulatedTime',
@@ -165,8 +164,18 @@ const SERVICE_MAPPING = {
       },
 
       /* MIXER */
+      '7072326b-95b0-4822-a5e1-b2cc47875ae5': {
+        name: 'stretch',
+        type: intValue,
+      },
       'a66375f6-7677-ba29-46b7-0fde55b0db61': {
         name: 'ledDim',
+        type: intValue,
+      },
+
+      /* MIXER */
+      '03b7cea7-bedc-e37f-1bfd-7f2ab70a5e7b': {
+        name: 'blower',
         type: intValue,
       },
     },

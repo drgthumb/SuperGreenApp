@@ -23,7 +23,12 @@ const MONTH_NAME = ["January", "February", "March", "April", "May", "June",
 
 class ParamEditor extends React.Component {
 
-  state = {value: null}
+  constructor(props) {
+    super(props)
+
+    console.log(props)
+    this.state = {value: props.value}
+  }
 
   render() {
     const { value } = this.state
@@ -68,20 +73,17 @@ class ParamEditor extends React.Component {
 
 class Season extends React.Component {
 
+  state = {editParam: null, editDuration: false}
 
-  constructor(props) {
-    super(props)
+  componentWillReceiveProps(newProps) {
+    const { startDateDay, startDateMonth, durationDays } = newProps
 
-    const { device } = props
-    const startDateDay = device.getIn(['services', 'config', 'characteristics', `startDateDay`, 'value'])
-    const startDateMonth = device.getIn(['services', 'config', 'characteristics', `startDateMonth`, 'value'])
-    const durationDays = device.getIn(['services', 'config', 'characteristics', `durationDays`, 'value'])
-
-    const sd = new Date(`${startDateMonth}/${startDateDay}`)
+    const sd = new Date(`${startDateMonth.get('value')}/${startDateDay.get('value')}`)
     const ed = new Date(sd)
-    ed.setDate(sd.getDate() + durationDays);
+    ed.setDate(sd.getDate() + durationDays.get('value'));
+    console.log(ed)
 
-    this.state = {editParam: null, editDuration: false, startDateMonth: sd.getMonth() + 1, startDateDay: sd.getDate(), endDateMonth: ed.getMonth() + 1, endDateDay: ed.getDate()}
+    this.setState({startDateMonth: sd.getMonth() + 1, startDateDay: sd.getDate(), endDateMonth: ed.getMonth() + 1, endDateDay: ed.getDate()})
   }
 
   renderParam(param) {
@@ -108,6 +110,7 @@ class Season extends React.Component {
     const dateMonth = this.state[`${editParam}DateMonth`]
     const dateDay = this.state[`${editParam}DateDay`]
     const items = _.times(48, (i) => ({label:`${MONTH_NAME[Math.floor(i / 4)]} ${Math.max(1, (i % 4) * 7)}`, value: `${MONTH_NAME[Math.floor(i / 4)]} ${Math.max(1, (i % 4) * 7)}`}))
+    console.log(items)
     return (
       <ParamEditor
         title={editParam == 'start' ? 'Simulated start date' : 'Simulated end date' }
@@ -120,8 +123,7 @@ class Season extends React.Component {
   }
 
   renderDurationEditor() {
-    const { device } = this.props
-    const durationDays = device.getIn(['services', 'config', 'characteristics', `durationDays`, 'value'])
+    const { simulationDurationDays } = this.props
     const items = _.times(240, (i) => ({label:`${i} days`, value: i}))
 
     return (
@@ -129,15 +131,14 @@ class Season extends React.Component {
         title='Simulation duration'
         submit='Set duration'
         icon={wait}
-        value={durationDays}
+        value={simulationDurationDays.get('value')}
         onValueChanged={this._handleDurationChanged}
         items={items} />
     )
   }
 
   renderDuration() {
-    const { device } = this.props
-    const durationDays = device.getIn(['services', 'config', 'characteristics', `durationDays`, 'value'])
+    const { simulationDurationDays } = this.props
 
     return (
       <View style={layoutStyles.durationContainer}>
@@ -145,7 +146,7 @@ class Season extends React.Component {
         <View style={layoutStyles.paramValue}>
           <Image source={wait} />
           <Text style={[textStyles.text, textStyles.big]}>
-            {' '}{durationDays} days
+            {' '}{simulationDurationDays.get('value')} days
           </Text>
         </View>
         <TouchableOpacity onPress={this._handleEditDuration}>
@@ -197,6 +198,7 @@ class Season extends React.Component {
   }
 
   _handleDateChanged = (param) => (value) => {
+    console.log(value)
     const { device, dispatch } = this.props
     const params = value.split(' ')
 
@@ -206,14 +208,15 @@ class Season extends React.Component {
     this.setState(state)
 
     const { startDateMonth, startDateDay, endDateMonth, endDateDay } = state
-    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'startDateMonth', startDateMonth))
-    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'startDateDay', startDateDay))
-
     const sd = new Date(`${startDateMonth}/${startDateDay}`)
     const ed = new Date(`${endDateMonth}/${endDateDay}`)
     const timeDiff = Math.abs(ed.getTime() - sd.getTime()),
           durationDays = Math.ceil(timeDiff / (1000 * 3600 * 24))
 
+    console.log('durationDays', durationDays)
+
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'startDateMonth', startDateMonth))
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'startDateDay', startDateDay))
     dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'durationDays', durationDays))
 
     this.setState({editParam: null})
@@ -221,7 +224,7 @@ class Season extends React.Component {
 
   _handleDurationChanged = (value) => {
     const { device, dispatch } = this.props
-    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `durationDays`, value))
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `simulationDurationDays`, value))
     this.setState({editDuration: false})
   }
 
@@ -315,4 +318,4 @@ const mapStateToProps = (state, props) => ({
   device: state.getIn(['ble', 'devices', props.navigation.getParam('device').id]),
 })
 
-export default connect(mapStateToProps)(withBLECharacteristics(['startDateMonth', 'startDateDay', 'durationDays'])(Season))
+export default connect(mapStateToProps)(withBLECharacteristics(['startDateMonth', 'startDateDay', 'durationDays', 'simulationDurationDays'])(Season))

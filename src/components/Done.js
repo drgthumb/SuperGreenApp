@@ -27,8 +27,8 @@ class Done extends React.Component {
 
   _handleStart = () => {
     const { device, dispatch, navigation } = this.props
-    console.log('_handleStart')
-    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `state`, 2))
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'state', 2))
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', 'startedAt', parseInt(Date.now() / 1000)))
     navigation.navigate('Device', { device: device.toJS() })
   }
 

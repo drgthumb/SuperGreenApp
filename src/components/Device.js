@@ -120,6 +120,66 @@ class Timer extends React.Component {
 
 Timer = withBLECharacteristics(['timerType'])(Timer)
 
+class Stretch extends React.Component {
+
+  render() {
+    const { stretch } = this.props
+
+    return (
+      <View style={layoutStyles.slider}>
+        <Text>off</Text>
+        <Slider value={stretch.get('value')}
+          minimumValue={0}
+          maximumValue={100}
+          minimumTrackImage={minimumTrack}
+          maximumTrackImage={maximumTrack}
+          thumbImage={slider}
+          onSlidingComplete={this._handleStretchChanged}
+          style={layoutStyles.sliderTrack} />
+        <Text>max</Text>
+      </View>
+    )
+  }
+
+  _handleStretchChanged = (value) => {
+    console.log('_handleStretchChanged', value)
+    const { device, dispatch } = this.props
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `stretch`, value))
+  }
+}
+
+Stretch = withBLECharacteristics(['stretch'])(Stretch)
+
+class Blower extends React.Component {
+
+  render() {
+    const { blower } = this.props
+
+    return (
+      <View style={layoutStyles.slider}>
+        <Text>off</Text>
+        <Slider value={blower.get('value')}
+          minimumValue={0}
+          maximumValue={100}
+          minimumTrackImage={minimumTrack}
+          maximumTrackImage={maximumTrack}
+          thumbImage={slider}
+          onSlidingComplete={this._handleBlowerChanged}
+          style={layoutStyles.sliderTrack} />
+        <Text>max</Text>
+      </View>
+    )
+  }
+
+  _handleBlowerChanged = (value) => {
+    console.log('_handleBlowerChanged', value)
+    const { device, dispatch } = this.props
+    dispatch(Creators.setCharacteristicValue(device.get('id'), 'config', `blower`, value))
+  }
+}
+
+Blower = withBLECharacteristics(['blower'])(Blower)
+
 class Device extends React.Component {
 
   static navigationOptions = {
@@ -144,18 +204,11 @@ class Device extends React.Component {
           <Separator />
           <Timer {...this.props} />
           <Separator />
-          <View style={layoutStyles.slider}>
-            <Text>Stretch</Text>
-            <Slider value={0}
-              minimumValue={0}
-              maximumValue={100}
-              minimumTrackImage={minimumTrack}
-              maximumTrackImage={maximumTrack}
-              thumbImage={slider}
-              onSlidingComplete={this._handleGrowthTypeChanged}
-              style={layoutStyles.sliderTrack} />
-            <Text>Thicken</Text>
-          </View>
+          <Text style={[textStyles.text, textStyles.title]}>Stretch mode</Text>
+          <Stretch {...this.props} />
+          <Separator />
+          <Text style={[textStyles.text, textStyles.title]}>Blower control</Text>
+          <Blower {...this.props} />
           <Separator />
           <View style={layoutStyles.sensors}>
             <Text style={[textStyles.text, textStyles.medium, textStyles.center]}>
@@ -180,10 +233,6 @@ class Device extends React.Component {
 
   _handleEditClassTimer = () => {
     console.log('_handleEditClassTimer')
-  }
-
-  _handleGrowthTypeChanged = () => {
-    console.log('_handleGrowthTypeChanged')
   }
 
   _handleDim = () => {
