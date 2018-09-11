@@ -6,16 +6,14 @@ import immutableTransform from 'redux-persist-transform-immutable'
 
 export const persistConfig = {
   transforms: [immutableTransform()],
-  key: 'nav',
+  key: 'persist',
   storage,
 }
 
-import nav from './nav'
 import ble from './ble'
 
 const AppReducer = combineReducers({
   ble,
-  nav,
 })
 
 export default AppReducer

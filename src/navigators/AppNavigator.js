@@ -15,7 +15,6 @@ import Lighting from '../components/Lighting'
 import Classic from '../components/Classic'
 import Season from '../components/Season'
 import Done from '../components/Done'
-import { addListener } from '../utils/redux'
 
 export const AppNavigator = createSwitchNavigator({
   Wait,
@@ -41,7 +40,6 @@ export const AppNavigator = createSwitchNavigator({
 class AppWithNavigationState extends React.Component {
   static propTypes = {
     dispatch: PropTypes.func.isRequired,
-    nav: PropTypes.object.isRequired,
   }
 
   render() {
@@ -49,13 +47,7 @@ class AppWithNavigationState extends React.Component {
 
     return (
       <View style={{flex: 1}}>
-        <AppNavigator
-          navigation={{
-            dispatch,
-            state: nav.toJS(),
-            addListener,
-          }}
-        />
+        <AppNavigator />
         { devices && devices.size > 1 && (
           <TouchableOpacity style={{position: 'absolute', backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', width: 80, height: 100, top: -20, right: -20, paddingTop: 30, paddingRight: 10, borderRadius: 20, borderWidth: 1}} onPress={this._handleShowList}>
             <Image source={list} />
