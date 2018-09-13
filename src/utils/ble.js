@@ -3,6 +3,7 @@ import { fromJS } from 'immutable'
 import React from 'react'
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native'
 import { connect } from 'react-redux'
+import { PermissionsAndroid, Platform } from 'react-native'
 import { BleManager } from 'react-native-ble-plx'
 import { Buffer } from 'buffer'
 
@@ -329,8 +330,30 @@ const listenDevices = () => {
   })
 }
 
+async function requestLocationPermission() {
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+      {
+        'title': 'SuperGreenApp Bluetooth authorization',
+        'message': 'This is needed in order to access your bluetooth SuperGreenDriver'
+      }
+    )
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      console.log("You can use the bluetooth adaptor")
+    } else {
+      console.log("Bluetooth permission denied")
+    }
+  } catch (err) {
+    console.warn(err)
+  }
+}
+
 const startBluetoothStack = async () => {
   let scanInterval;
+  if (Platform.OS === 'android') {
+    await requestLocationPermission()
+  }
   bleManager.onStateChange((state) => {
     if (state === 'PoweredOn') {
       emitter(Creators.ready())
