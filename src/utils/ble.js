@@ -389,7 +389,17 @@ const withBLECharacteristics = (characteristics) => (Component) => {
 
     render() {
       const { device } = this.props
-      const loading = !!_.find(characteristics, (c) => !this.props[c].get('loaded'));
+      const error = !!_.find(characteristics, (c) => typeof this.props[c] == 'undefined')
+
+      if (error) {
+        return (
+          <View style={styles.container}>
+            <Text>Feature not available.{'\n'}Please upgrade your SuperGreenDriver's OS.</Text>
+          </View>
+        )
+      }
+
+      const loading = !!_.find(characteristics, (c) => !this.props[c].get('loaded'))
 
       return (
         <View style={styles.container}>
@@ -408,15 +418,14 @@ const withBLECharacteristics = (characteristics) => (Component) => {
       const { device, dispatch } = props
       if (!device.get('connected')) return
       _.forEach(characteristics, (c) => {
-        if (!device.getIn(['services', 'config', 'characteristics', c, 'loaded']) &&
-            !device.getIn(['services', 'config', 'characteristics', c, 'getting'])) {
+        if (props[c] &&
+            !props[c].get('loaded') &&
+            !props[c].get('getting')) {
           dispatch(Creators.getCharacteristicValue(device.get('id'), 'config', c))
         }
       })
     }
-
   })
-
 }
 
 const styles = StyleSheet.create({
