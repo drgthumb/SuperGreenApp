@@ -30,6 +30,7 @@ build/
 local.properties
 *.iml
 android/drawable*
+android/app/release/
 
 # node.js
 #
