@@ -8,7 +8,7 @@ React-native based android/ios application to interact via ble with the [SuperGr
 
 ## Getting started
 
-Follow [react-native's getting started documentation](https://facebook.github.io/react-native/docs/getting-started.html), be sure to select the `Building Projects with Native Code` at the top of the page.
+Follow [react-native's getting started documentation](https://facebook.github.io/react-native/docs/getting-started.html), be sure to select the `Building Projects with Native Code` tap at the top of the page.
 
 Then to clone and install requirements:
 
