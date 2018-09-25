@@ -93,8 +93,6 @@ def enableSeparateBuildPerCPUArchitecture = false
  */
 def enableProguardInReleaseBuilds = false
 
-def pass = getPassword("stant", "sga-build-passwd")
-
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -121,9 +119,7 @@ android {
       release {
         if (project.hasProperty('SGA_RELEASE_STORE_FILE')) {
             storeFile file(SGA_RELEASE_STORE_FILE)
-            storePassword pass
             keyAlias SGA_RELEASE_KEY_ALIAS
-            keyPassword pass
         }
       }
     }
