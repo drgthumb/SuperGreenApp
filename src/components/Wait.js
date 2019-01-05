@@ -27,10 +27,10 @@ class Wait extends React.Component {
 
   render() {
     return (
-      <SetupLayout title='Welcome to chronic-o-matic'>
+      <SetupLayout title='Welcome to SuperGreenLab'>
         <View style={layoutStyles.container}>
           <Text style={styles.title}>
-            Looking for the new box,{"\n"}
+            Looking for connected drivers,{"\n"}
             please ensure that it is plugged in..
           </Text>
           <ActivityIndicator size="large" />

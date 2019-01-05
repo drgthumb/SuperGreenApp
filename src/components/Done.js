@@ -11,7 +11,7 @@ class Done extends React.Component {
 
   render() {
     return (
-      <SetupLayout title='Welcome to chronic-o-matic'>
+      <SetupLayout title='Welcome to SuperGreenLab'>
         <View style={layoutStyles.container}>
           <Text style={styles.title}>
             Setup done !{"\n"}
