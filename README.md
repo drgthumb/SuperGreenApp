@@ -1,5 +1,7 @@
 ![SuperGreenLab](assets/sgl.png?raw=true "SuperGreenLab")
 
+[![SuperGreenLab](assets/reddit-button.png?raw=true "SuperGreenLab")](https://www.reddit.com/r/SuperGreenLab)
+
 # SuperGreenApp
 
 React-native based android/ios application to interact via ble with the [SuperGreenBox](https://github.com/supergreenlab/SuperGreenBox)
